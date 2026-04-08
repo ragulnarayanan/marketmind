@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh auth:*)",
+      "Bash(file /Users/rana/Projects/marketmind/assets/logos/*.png)"
+    ]
+  }
+}

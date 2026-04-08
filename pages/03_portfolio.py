@@ -137,9 +137,10 @@ selected = TOP_50[sel_idx]
 # Logo + name preview
 logo_col, name_col = st.columns([1, 8])
 with logo_col:
-    logo_path = f"assets/logos/{selected['symbol']}.png"
+    logo_path = f"assets/logos/{selected['symbol']}.svg"
     if os.path.exists(logo_path):
-        st.image(logo_path, width=48)
+        svg = open(logo_path).read()
+        st.markdown(f'<div style="width:48px;height:48px">{svg}</div>', unsafe_allow_html=True)
 with name_col:
     st.markdown(f"**{selected['name']}** &nbsp; `{selected['symbol']}`")
 
