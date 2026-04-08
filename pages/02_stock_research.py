@@ -1,8 +1,9 @@
 """
 Page 2 — Stock Research
-Five-agent deep dive on any ticker → Buy / Hold / Sell verdict.
+Five-agent deep dive on up to 5 tickers → Buy / Hold / Sell verdict.
 """
 import asyncio
+import os
 
 import plotly.graph_objects as go
 import streamlit as st
@@ -19,169 +20,248 @@ if not uid:
 
 st.title("Stock Research")
 
-# ── Input ─────────────────────────────────────────────────────────────────────
-col_input, col_btn = st.columns([3, 1])
-with col_input:
-    ticker_input = st.text_input("Ticker", placeholder="AAPL", key="research_ticker_input").upper().strip()
-with col_btn:
-    st.write("")
-    research_btn = st.button("Research", type="primary", use_container_width=True)
+TOP_50 = [
+    {"symbol": "AAPL",  "name": "Apple Inc."},
+    {"symbol": "MSFT",  "name": "Microsoft Corp."},
+    {"symbol": "NVDA",  "name": "NVIDIA Corp."},
+    {"symbol": "GOOGL", "name": "Alphabet Inc."},
+    {"symbol": "AMZN",  "name": "Amazon.com"},
+    {"symbol": "META",  "name": "Meta Platforms"},
+    {"symbol": "TSLA",  "name": "Tesla Inc."},
+    {"symbol": "AVGO",  "name": "Broadcom Inc."},
+    {"symbol": "TSM",   "name": "Taiwan Semiconductor"},
+    {"symbol": "LLY",   "name": "Eli Lilly"},
+    {"symbol": "V",     "name": "Visa Inc."},
+    {"symbol": "JPM",   "name": "JPMorgan Chase"},
+    {"symbol": "WMT",   "name": "Walmart Inc."},
+    {"symbol": "MA",    "name": "Mastercard"},
+    {"symbol": "XOM",   "name": "Exxon Mobil"},
+    {"symbol": "COST",  "name": "Costco Wholesale"},
+    {"symbol": "HD",    "name": "Home Depot"},
+    {"symbol": "JNJ",   "name": "Johnson & Johnson"},
+    {"symbol": "NFLX",  "name": "Netflix Inc."},
+    {"symbol": "PG",    "name": "Procter & Gamble"},
+    {"symbol": "ORCL",  "name": "Oracle Corp."},
+    {"symbol": "BAC",   "name": "Bank of America"},
+    {"symbol": "ABBV",  "name": "AbbVie Inc."},
+    {"symbol": "AMD",   "name": "Advanced Micro Devices"},
+    {"symbol": "CRM",   "name": "Salesforce"},
+    {"symbol": "KO",    "name": "Coca-Cola Co."},
+    {"symbol": "CVX",   "name": "Chevron Corp."},
+    {"symbol": "MRK",   "name": "Merck & Co."},
+    {"symbol": "PEP",   "name": "PepsiCo Inc."},
+    {"symbol": "ADBE",  "name": "Adobe Inc."},
+    {"symbol": "ACN",   "name": "Accenture PLC"},
+    {"symbol": "WFC",   "name": "Wells Fargo"},
+    {"symbol": "UNH",   "name": "UnitedHealth Group"},
+    {"symbol": "IBM",   "name": "IBM Corp."},
+    {"symbol": "QCOM",  "name": "Qualcomm Inc."},
+    {"symbol": "NOW",   "name": "ServiceNow"},
+    {"symbol": "TXN",   "name": "Texas Instruments"},
+    {"symbol": "PM",    "name": "Philip Morris"},
+    {"symbol": "INTU",  "name": "Intuit Inc."},
+    {"symbol": "AMGN",  "name": "Amgen Inc."},
+    {"symbol": "CSCO",  "name": "Cisco Systems"},
+    {"symbol": "CAT",   "name": "Caterpillar Inc."},
+    {"symbol": "DIS",   "name": "Walt Disney Co."},
+    {"symbol": "GS",    "name": "Goldman Sachs"},
+    {"symbol": "NEE",   "name": "NextEra Energy"},
+    {"symbol": "ISRG",  "name": "Intuitive Surgical"},
+    {"symbol": "BKNG",  "name": "Booking Holdings"},
+    {"symbol": "AMAT",  "name": "Applied Materials"},
+    {"symbol": "SPGI",  "name": "S&P Global"},
+    {"symbol": "T",     "name": "AT&T Inc."},
+]
+SYMBOL_MAP = {s["symbol"]: s for s in TOP_50}
 
-# ── Validate + fetch ──────────────────────────────────────────────────────────
-if research_btn and ticker_input:
-    cache_key = f"research_{ticker_input}"
-    st.session_state[cache_key] = None  # clear stale cache
+# ── Session state init ────────────────────────────────────────────────────────
+if "research_queue" not in st.session_state:
+    st.session_state["research_queue"] = []
 
-    try:
-        yf.Ticker(ticker_input).fast_info["lastPrice"]
-    except Exception:
-        st.error(f"'{ticker_input}' does not appear to be a valid ticker.")
-        st.stop()
+# Auto-add ticker coming from Watchlist "Research" button
+_redirect = st.session_state.pop("research_ticker_input", None)
+if _redirect and _redirect in SYMBOL_MAP and _redirect not in st.session_state["research_queue"]:
+    st.session_state["research_queue"].append(_redirect)
 
-    with st.status(f"Researching {ticker_input}...", expanded=True) as status:
-        st.write("Fetching news and SEC filings...")
-        st.write("Running News Agent (gpt-4o-mini)...")
-        st.write("Running SEC Agent (gemini-1.5-pro)...")
-        st.write("Running Financials Agent (gemini-1.5-flash)...")
-        st.write("Running Synthesis Agent (gpt-4o-mini)...")
-        st.write("Running Verdict Agent (gpt-4o)...")
-        result = asyncio.run(run_stock_research(ticker_input))
-        st.session_state[cache_key] = result
-        status.update(label="Research complete!", state="complete")
+# ── Stock selector ────────────────────────────────────────────────────────────
+sel_idx = st.selectbox(
+    "Select stock",
+    range(len(TOP_50)),
+    format_func=lambda i: f"{TOP_50[i]['symbol']} — {TOP_50[i]['name']}",
+    key="rs_stock_sel",
+)
+selected = TOP_50[sel_idx]
 
-# ── Display ───────────────────────────────────────────────────────────────────
-cache_key = f"research_{ticker_input}" if ticker_input else None
-result = st.session_state.get(cache_key) if cache_key else None
+logo_col, name_col, btn_col = st.columns([1, 6, 1])
+with logo_col:
+    logo_path = f"assets/logos/{selected['symbol']}.svg"
+    if os.path.exists(logo_path):
+        svg = open(logo_path).read()
+        st.markdown(f'<div style="width:48px;height:48px">{svg}</div>', unsafe_allow_html=True)
+with name_col:
+    st.markdown(f"**{selected['name']}** &nbsp; `{selected['symbol']}`")
+with btn_col:
+    if st.button("+ Add", type="primary", use_container_width=True):
+        ticker = selected["symbol"]
+        if ticker in st.session_state["research_queue"]:
+            st.warning(f"{ticker} is already in the queue.")
+        elif len(st.session_state["research_queue"]) >= 5:
+            st.warning("Queue is full — maximum 5 stocks.")
+        else:
+            st.session_state["research_queue"].append(ticker)
+            st.rerun()
 
-if result is None:
-    st.info("Enter a ticker and click Research to begin.")
+# ── Research queue ────────────────────────────────────────────────────────────
+queue = st.session_state["research_queue"]
+
+if queue:
+    st.markdown("**Research Queue** (up to 5)")
+    tag_cols = st.columns(len(queue) + 1)
+    for i, ticker in enumerate(list(queue)):
+        if tag_cols[i].button(f"{ticker}  x", key=f"rm_{ticker}"):
+            st.session_state["research_queue"].remove(ticker)
+            st.rerun()
+
+    if tag_cols[-1].button("Research All", type="primary"):
+        for ticker in queue:
+            cache_key = f"rs_result_{ticker}"
+            if st.session_state.get(cache_key):
+                continue  # already cached
+            with st.status(f"Researching {ticker}...", expanded=True) as status:
+                st.write("Fetching news and SEC filings...")
+                st.write("Running News, SEC, Financials, Synthesis, Verdict agents...")
+                result = asyncio.run(run_stock_research(ticker))
+                st.session_state[cache_key] = result
+                status.update(label=f"{ticker} complete!", state="complete")
+        st.rerun()
+else:
+    st.info("Select a stock above and click + Add to build your research queue.")
     st.stop()
 
-# Price + volume chart
-try:
-    hist = yf.Ticker(ticker_input).history(period="1y")
-    if not hist.empty:
-        fig = go.Figure()
-        fig.add_trace(go.Candlestick(
-            x=hist.index, open=hist["Open"], high=hist["High"],
-            low=hist["Low"], close=hist["Close"], name="Price",
-        ))
-        fig.add_trace(go.Bar(
-            x=hist.index, y=hist["Volume"], name="Volume",
-            marker_color="rgba(124,58,237,0.3)", yaxis="y2",
-        ))
-        fig.update_layout(
-            title=f"{ticker_input} — 1-Year Price and Volume",
-            yaxis2=dict(overlaying="y", side="right", showgrid=False),
-            xaxis_rangeslider_visible=False,
-            height=400,
+# ── Results ───────────────────────────────────────────────────────────────────
+ready = [(t, st.session_state.get(f"rs_result_{t}")) for t in queue if st.session_state.get(f"rs_result_{t}")]
+if not ready:
+    st.stop()
+
+stock_tabs = st.tabs([t for t, _ in ready])
+
+for tab, (ticker, result) in zip(stock_tabs, ready):
+    with tab:
+        # Price + volume chart
+        try:
+            hist = yf.Ticker(ticker).history(period="1y")
+            if not hist.empty:
+                fig = go.Figure()
+                fig.add_trace(go.Candlestick(
+                    x=hist.index, open=hist["Open"], high=hist["High"],
+                    low=hist["Low"], close=hist["Close"], name="Price",
+                ))
+                fig.add_trace(go.Bar(
+                    x=hist.index, y=hist["Volume"], name="Volume",
+                    marker_color="rgba(124,58,237,0.3)", yaxis="y2",
+                ))
+                fig.update_layout(
+                    title=f"{ticker} — 1-Year Price and Volume",
+                    yaxis2=dict(overlaying="y", side="right", showgrid=False),
+                    xaxis_rangeslider_visible=False,
+                    height=380,
+                )
+                st.plotly_chart(fig, use_container_width=True)
+        except Exception:
+            pass
+
+        tab_news, tab_sec, tab_fin, tab_verdict = st.tabs(
+            ["News", "SEC Filing", "Financials", "Verdict"]
         )
-        st.plotly_chart(fig, use_container_width=True)
-except Exception:
-    pass
 
-# ── Tabs ──────────────────────────────────────────────────────────────────────
-tab_news, tab_sec, tab_fin, tab_verdict = st.tabs(["News", "SEC Filing", "Financials", "Verdict"])
+        with tab_news:
+            news = result.get("news", {})
+            sentiment = news.get("sentiment_label", "neutral")
+            s_color = {"bullish": "green", "bearish": "red", "neutral": "orange"}.get(sentiment, "orange")
+            s_label = {"bullish": "BULLISH", "bearish": "BEARISH", "neutral": "NEUTRAL"}.get(sentiment, sentiment.upper())
+            st.markdown(f"### :{s_color}[{s_label}]  — Score {news.get('sentiment_score', 'N/A')}/10")
+            st.write(news.get("summary", ""))
+            st.caption(f"Top headline: {news.get('top_headline', 'N/A')}")
+            col_ev, col_risk = st.columns(2)
+            with col_ev:
+                st.markdown("**Key Events**")
+                for ev in news.get("key_events", []):
+                    st.markdown(f"- {ev}")
+            with col_risk:
+                st.markdown("**Risks**")
+                for r in news.get("risks", []):
+                    st.markdown(f"- {r}")
 
-with tab_news:
-    news = result.get("news", {})
-    sentiment = news.get("sentiment_label", "neutral")
-    sentiment_color = {"bullish": "green", "bearish": "red", "neutral": "orange"}.get(sentiment, "orange")
-    sentiment_label = {"bullish": "BULLISH", "bearish": "BEARISH", "neutral": "NEUTRAL"}.get(sentiment, sentiment.upper())
-    st.markdown(f"### :{sentiment_color}[{sentiment_label}]  — Score {news.get('sentiment_score', 'N/A')}/10")
-    st.write(news.get("summary", ""))
-    st.caption(f"Top headline: {news.get('top_headline', 'N/A')}")
+        with tab_sec:
+            sec = result.get("sec", {})
+            st.markdown(f"#### {sec.get('filing_type', '10-K')} Filing Analysis")
+            for label, key in [
+                ("Risk Factors",          "risk_factors"),
+                ("Revenue and Outlook",   "revenue_outlook"),
+                ("Debt and Going Concern","debt_concerns"),
+                ("Competitive Threats",   "competitive_threats"),
+                ("Capital Allocation",    "capital_allocation"),
+            ]:
+                item = sec.get(key, {})
+                conf_label = {"high": "[High]", "medium": "[Med]", "low": "[Low]"}.get(
+                    item.get("confidence", "low"), "[?]"
+                )
+                with st.expander(f"{conf_label} {label}"):
+                    st.write(item.get("answer", "N/A"))
 
-    col_ev, col_risk = st.columns(2)
-    with col_ev:
-        st.markdown("**Key Events**")
-        for ev in news.get("key_events", []):
-            st.markdown(f"- {ev}")
-    with col_risk:
-        st.markdown("**Risks**")
-        for r in news.get("risks", []):
-            st.markdown(f"- {r}")
+        with tab_fin:
+            fin = result.get("financials", {})
+            if fin.get("error"):
+                st.error(f"Financials unavailable: {fin['error']}")
+            else:
+                c1, c2, c3 = st.columns(3)
+                c1.metric("Valuation",        fin.get("valuation", "N/A"))
+                c2.metric("Financial Health",  fin.get("financial_health", "N/A"))
+                c3.metric("Growth Profile",    fin.get("growth_profile", "N/A"))
+                st.markdown("**Valuation Rationale:** " + fin.get("valuation_reason", "N/A"))
+                st.markdown("**Health Rationale:** "    + fin.get("health_reason", "N/A"))
+                metrics = fin.get("key_metrics", {})
+                if metrics:
+                    st.markdown("#### Key Metrics")
+                    m_cols = st.columns(4)
+                    for i, (lbl, k) in enumerate([
+                        ("P/E","pe"),("P/B","pb"),("EV/EBITDA","ev_ebitda"),
+                        ("Margin","margin"),("D/E","de_ratio"),("ROE","roe"),("Beta","beta"),
+                    ]):
+                        v = metrics.get(k)
+                        m_cols[i % 4].metric(lbl, f"{v:.2f}" if v is not None else "N/A")
+                col_r, col_g = st.columns(2)
+                with col_r:
+                    st.markdown("**Red Flags**")
+                    for f in fin.get("red_flags", []):
+                        st.markdown(f"- {f}")
+                with col_g:
+                    st.markdown("**Green Flags**")
+                    for f in fin.get("green_flags", []):
+                        st.markdown(f"- {f}")
 
-with tab_sec:
-    sec = result.get("sec", {})
-    filing_type = sec.get("filing_type", "10-K")
-    st.markdown(f"#### {filing_type} Filing Analysis")
-    sections = [
-        ("Risk Factors",         "risk_factors"),
-        ("Revenue and Outlook",  "revenue_outlook"),
-        ("Debt and Going Concern","debt_concerns"),
-        ("Competitive Threats",  "competitive_threats"),
-        ("Capital Allocation",   "capital_allocation"),
-    ]
-    for label, key in sections:
-        item = sec.get(key, {})
-        conf = item.get("confidence", "low")
-        conf_label = {"high": "[High]", "medium": "[Med]", "low": "[Low]"}.get(conf, "[?]")
-        with st.expander(f"{conf_label} {label}"):
-            st.write(item.get("answer", "N/A"))
-
-with tab_fin:
-    fin = result.get("financials", {})
-    if fin.get("error"):
-        st.error(f"Financials unavailable: {fin['error']}")
-    else:
-        c1, c2, c3 = st.columns(3)
-        c1.metric("Valuation",       fin.get("valuation", "N/A"))
-        c2.metric("Financial Health", fin.get("financial_health", "N/A"))
-        c3.metric("Growth Profile",  fin.get("growth_profile", "N/A"))
-
-        st.markdown("**Valuation Rationale:** " + fin.get("valuation_reason", "N/A"))
-        st.markdown("**Health Rationale:** " + fin.get("health_reason", "N/A"))
-
-        metrics = fin.get("key_metrics", {})
-        if metrics:
-            st.markdown("#### Key Metrics")
-            m_cols = st.columns(4)
-            pairs = [("P/E", "pe"), ("P/B", "pb"), ("EV/EBITDA", "ev_ebitda"),
-                     ("Margin", "margin"), ("D/E", "de_ratio"), ("ROE", "roe"), ("Beta", "beta")]
-            for i, (lbl, key) in enumerate(pairs):
-                v = metrics.get(key)
-                m_cols[i % 4].metric(lbl, f"{v:.2f}" if v is not None else "N/A")
-
-        col_flags1, col_flags2 = st.columns(2)
-        with col_flags1:
-            st.markdown("**Red Flags**")
-            for f in fin.get("red_flags", []):
-                st.markdown(f"- {f}")
-        with col_flags2:
-            st.markdown("**Green Flags**")
-            for f in fin.get("green_flags", []):
-                st.markdown(f"- {f}")
-
-with tab_verdict:
-    verdict = result.get("verdict", {})
-    v     = verdict.get("verdict", "HOLD")
-    conf  = verdict.get("confidence", "LOW")
-    score = verdict.get("confidence_score", 0)
-
-    verdict_color = {"BUY": "green", "SELL": "red", "HOLD": "orange"}.get(v, "orange")
-    st.markdown(f"## :{verdict_color}[{v}]  — Confidence: {conf}  ({score}/10)")
-    st.progress(score * 10, text=f"Confidence score: {score}/10")
-
-    st.markdown("**Reasoning**")
-    for point in verdict.get("reasoning", []):
-        st.markdown(f"- {point}")
-
-    col_bull, col_bear = st.columns(2)
-    with col_bull:
-        st.markdown("**Bull Case**")
-        st.write(verdict.get("bull_case", "N/A"))
-    with col_bear:
-        st.markdown("**Bear Case**")
-        st.write(verdict.get("bear_case", "N/A"))
-
-    st.markdown("**Key Risks**")
-    for risk in verdict.get("key_risks", []):
-        st.markdown(f"- {risk}")
-
-    horizon = verdict.get("time_horizon", "MEDIUM")
-    st.markdown(f"**Time Horizon:** {horizon}")
-    if verdict.get("price_context"):
-        st.markdown(f"**Price Context:** {verdict['price_context']}")
-
-    st.caption(verdict.get("disclaimer", "Not financial advice. Do your own research."))
+        with tab_verdict:
+            verdict = result.get("verdict", {})
+            v      = verdict.get("verdict", "HOLD")
+            conf   = verdict.get("confidence", "LOW")
+            score  = verdict.get("confidence_score", 0)
+            v_color = {"BUY": "green", "SELL": "red", "HOLD": "orange"}.get(v, "orange")
+            st.markdown(f"## :{v_color}[{v}]  — Confidence: {conf}  ({score}/10)")
+            st.progress(score * 10, text=f"Confidence score: {score}/10")
+            st.markdown("**Reasoning**")
+            for point in verdict.get("reasoning", []):
+                st.markdown(f"- {point}")
+            col_bull, col_bear = st.columns(2)
+            with col_bull:
+                st.markdown("**Bull Case**")
+                st.write(verdict.get("bull_case", "N/A"))
+            with col_bear:
+                st.markdown("**Bear Case**")
+                st.write(verdict.get("bear_case", "N/A"))
+            st.markdown("**Key Risks**")
+            for risk in verdict.get("key_risks", []):
+                st.markdown(f"- {risk}")
+            st.markdown(f"**Time Horizon:** {verdict.get('time_horizon', 'MEDIUM')}")
+            if verdict.get("price_context"):
+                st.markdown(f"**Price Context:** {verdict['price_context']}")
+            st.caption(verdict.get("disclaimer", "Not financial advice. Do your own research."))
