@@ -4,7 +4,7 @@ Always includes SEC_USER_AGENT header and rate-limit delays.
 """
 import time
 import requests
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 from config import (
     SEC_CHUNK_OVERLAP,
