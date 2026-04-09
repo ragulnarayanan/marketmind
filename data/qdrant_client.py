@@ -80,13 +80,13 @@ def search_news(
     if exclude_tickers:
         must_not.append(FieldCondition(key="tickers", match=MatchAny(any=exclude_tickers)))
 
-    results = client.search(
+    results = client.query_points(
         "news_articles",
-        query_vector=query_vector,
+        query=query_vector,
         query_filter=Filter(must=must, must_not=must_not),
         limit=limit,
         with_payload=True,
-    )
+    ).points
     return [r.payload for r in results]
 
 
@@ -119,9 +119,9 @@ def search_sec_chunks(
     filing_type: str = "10-K",
     limit: int = 5,
 ) -> list[dict]:
-    results = client.search(
+    results = client.query_points(
         "sec_filings",
-        query_vector=query_vector,
+        query=query_vector,
         query_filter=Filter(
             must=[
                 FieldCondition(key="ticker", match=MatchValue(value=ticker)),
@@ -130,5 +130,5 @@ def search_sec_chunks(
         ),
         limit=limit,
         with_payload=True,
-    )
+    ).points
     return [r.payload for r in results]
