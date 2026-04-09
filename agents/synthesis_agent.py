@@ -9,6 +9,7 @@ import json
 from langchain_openai import ChatOpenAI
 
 from config import GPT_FAST, OPENAI_API_KEY
+from utils import parse_llm_json
 
 _llm = ChatOpenAI(model=GPT_FAST, temperature=0.2, api_key=OPENAI_API_KEY)
 
@@ -61,8 +62,8 @@ async def run_synthesis_agent(ticker: str, news: dict, sec: dict, financials: di
 
         response = await asyncio.to_thread(_llm.invoke, messages)
         raw = response.content.strip()
-        return json.loads(raw)
-    except json.JSONDecodeError:
+        return parse_llm_json(raw)
+    except (json.JSONDecodeError, ValueError):
         return {
             "unified_brief": response.content if "response" in dir() else "Parse error",
             "key_positives": [],

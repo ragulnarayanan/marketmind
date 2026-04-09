@@ -11,6 +11,7 @@ from langchain_openai import ChatOpenAI
 
 from config import GPT_FAST, NEWS_LOOKBACK_DAYS, OPENAI_API_KEY, TOP_K_VECTOR_RESULTS
 from data.qdrant_client import search_news
+from utils import parse_llm_json
 from utils.embeddings import embed_text
 
 _llm = ChatOpenAI(model=GPT_FAST, temperature=0.1, api_key=OPENAI_API_KEY)
@@ -61,8 +62,8 @@ async def run_news_agent(ticker: str) -> dict:
             _llm.invoke, [{"role": m["role"], "content": m["content"]} for m in messages]
         )
         raw = response.content.strip()
-        return json.loads(raw)
-    except json.JSONDecodeError:
+        return parse_llm_json(raw)
+    except (json.JSONDecodeError, ValueError):
         return {"raw_response": raw, "error": "JSON parse failed"}
     except Exception as e:
         return _empty(ticker, str(e))

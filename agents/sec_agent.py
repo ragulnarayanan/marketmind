@@ -10,6 +10,7 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 
 from config import GEMINI_PRO, GOOGLE_API_KEY, TOP_K_VECTOR_RESULTS
 from data.qdrant_client import search_sec_chunks
+from utils import parse_llm_json
 from utils.embeddings import embed_text
 
 _llm = ChatGoogleGenerativeAI(
@@ -48,12 +49,7 @@ async def _ask_one(ticker: str, filing_type: str, question: str) -> dict:
     try:
         response = await asyncio.to_thread(_llm.invoke, messages)
         raw = response.content.strip()
-        # Strip markdown fences if present
-        if raw.startswith("```"):
-            raw = raw.split("```")[1]
-            if raw.startswith("json"):
-                raw = raw[4:]
-        return json.loads(raw.strip())
+        return parse_llm_json(raw)
     except Exception:
         return {"answer": response.content if "response" in dir() else "Parse error", "confidence": "low"}
 

@@ -9,6 +9,7 @@ import json
 from langchain_openai import ChatOpenAI
 
 from config import GPT_SMART, OPENAI_API_KEY
+from utils import parse_llm_json
 
 _llm = ChatOpenAI(model=GPT_SMART, temperature=0.1, api_key=OPENAI_API_KEY)
 
@@ -48,8 +49,8 @@ async def run_verdict_agent(ticker: str, synthesis: dict) -> dict:
 
         response = await asyncio.to_thread(_llm.invoke, messages)
         raw = response.content.strip()
-        return json.loads(raw)
-    except json.JSONDecodeError:
+        return parse_llm_json(raw)
+    except (json.JSONDecodeError, ValueError):
         return {
             "verdict": "HOLD",
             "confidence": "LOW",

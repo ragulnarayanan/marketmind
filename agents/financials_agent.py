@@ -10,6 +10,7 @@ import yfinance as yf
 from langchain_google_genai import ChatGoogleGenerativeAI
 
 from config import GEMINI_FAST, GOOGLE_API_KEY
+from utils import parse_llm_json
 from utils.sector_mapper import get_sector
 from utils.volume_analyzer import detect_volume_spikes
 
@@ -116,12 +117,7 @@ async def run_financials_agent(ticker: str) -> dict:
 
         response = await asyncio.to_thread(_llm.invoke, messages)
         raw = response.content.strip()
-        if raw.startswith("```"):
-            raw = raw.split("```")[1]
-            if raw.startswith("json"):
-                raw = raw[4:]
-
-        result = json.loads(raw.strip())
+        result = parse_llm_json(raw)
         result["raw_metrics"] = metrics
         result["volume_spikes"] = spikes[:5]
         return result
