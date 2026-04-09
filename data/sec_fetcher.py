@@ -60,8 +60,15 @@ def _detect_section(text: str) -> str:
 def fetch_and_embed_sec_filing(ticker: str, filing_type: str = "10-K") -> int:
     """
     Fetch latest SEC filing for ticker, chunk, embed, store in Qdrant.
-    Returns number of chunks stored, or -1 if already cached.
+    Returns number of chunks stored, -1 if already cached, or 0 on network error.
     """
+    try:
+        return _fetch_and_embed(ticker, filing_type)
+    except requests.exceptions.RequestException:
+        return 0  # SEC EDGAR unreachable — skip silently
+
+
+def _fetch_and_embed(ticker: str, filing_type: str) -> int:
     if sec_chunks_exist(ticker, filing_type):
         return -1
 

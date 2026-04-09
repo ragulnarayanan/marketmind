@@ -20,10 +20,16 @@ from data.sec_fetcher import fetch_and_embed_sec_filing
 async def run_stock_research(ticker: str) -> dict:
     ticker = ticker.upper().strip()
 
+    async def _safe_sec():
+        try:
+            await asyncio.to_thread(fetch_and_embed_sec_filing, ticker)
+        except Exception:
+            pass  # SEC EDGAR unreachable — pipeline continues without it
+
     # Phase 1: parallel data fetch
     await asyncio.gather(
         fetch_and_store_ticker_news(ticker),
-        asyncio.to_thread(fetch_and_embed_sec_filing, ticker),
+        _safe_sec(),
     )
 
     # Phase 2: agents 1-3 in parallel
