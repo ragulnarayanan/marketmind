@@ -27,8 +27,8 @@ QDRANT_API_KEY = os.getenv("QDRANT_API_KEY")   # None if not set — fine for lo
 # ── Models ────────────────────────────────────────────────────────────────────
 GPT_FAST     = "gpt-4o-mini"       # news, synthesis, stock brief, buy/wait
 GPT_SMART    = "gpt-4o"            # final verdict only
-GEMINI_FAST  = "gemini-1.5-flash"  # financials, structured analysis
-GEMINI_PRO   = "gemini-1.5-pro"    # SEC RAG, macro filter (long context)
+GEMINI_FAST  = "gemini-2.5-flash"   # financials, structured analysis
+GEMINI_PRO   = "gemini-2.5-flash"   # SEC RAG, macro filter (long context)
 
 EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "text-embedding-3-small")
 EMBEDDING_DIMS  = int(os.getenv("EMBEDDING_DIMS", "1536"))
