@@ -1,0 +1,124 @@
+"""
+Audio brief generator — converts daily brief dict to spoken MP3 via OpenAI TTS.
+"""
+from datetime import datetime
+
+from openai import OpenAI
+
+from config import OPENAI_API_KEY
+
+client = OpenAI(api_key=OPENAI_API_KEY)
+
+
+def write_audio_script(brief: dict) -> str:
+    """
+    Convert the daily brief dict into a natural spoken script.
+    Reads like a professional financial podcast host.
+    """
+    now      = datetime.now()
+    day_name = now.strftime("%A")
+    date_str = now.strftime("%B %d")
+
+    pnl      = brief.get("portfolio_snapshot", {})
+    holdings = pnl.get("holdings", [])
+    summary  = brief.get("portfolio_summary", {})
+    macro    = brief.get("macro_alerts", [])
+    signals  = brief.get("signals", {})
+
+    total_val  = pnl.get("total_market_value", 0)
+    daily_pnl  = pnl.get("daily_pnl", 0)
+    daily_pct  = pnl.get("daily_pnl_pct", 0)
+    total_pnl  = pnl.get("total_pnl", 0)
+    total_pct  = pnl.get("total_pnl_pct", 0)
+
+    direction = "up" if daily_pnl >= 0 else "down"
+    pnl_word  = "gaining" if daily_pnl >= 0 else "losing"
+
+    script = f"Welcome to your MarketMind brief for {day_name}, {date_str}.\n\n"
+
+    # ── Portfolio overview ──────────────────────────────────────────────────
+    script += (
+        f"Your portfolio is {direction} {abs(daily_pct):.1f}% today, "
+        f"{pnl_word} ${abs(daily_pnl):,.0f}. "
+        f"Total portfolio value stands at ${total_val:,.0f}, "
+        f"with an overall gain of {total_pct:+.1f}% from your cost basis.\n\n"
+    )
+
+    # ── Individual movers ───────────────────────────────────────────────────
+    if holdings:
+        sorted_h = sorted(holdings,
+                          key=lambda x: abs(x.get("daily_pct", 0)),
+                          reverse=True)
+        script += "Looking at today's movers. "
+        mover_parts = []
+        for h in sorted_h:
+            ticker = h.get("ticker", "")
+            pct    = h.get("daily_pct", 0)
+            move   = "up" if pct >= 0 else "down"
+            signal = signals.get(ticker, {}).get("signal", "WAIT")
+            mover_parts.append(
+                f"{ticker} is {move} {abs(pct):.1f}%, "
+                f"current signal is {signal.lower()}"
+            )
+        script += ". ".join(mover_parts) + ".\n\n"
+
+    # ── Portfolio news summary ──────────────────────────────────────────────
+    news_summary = summary.get("summary", "")
+    if news_summary:
+        script += (
+            f"Here is what is driving your portfolio today. "
+            f"{news_summary}\n\n"
+        )
+
+    # ── Macro / world news ─────────────────────────────────────────────────
+    if macro:
+        script += "Now for the global headlines you should be aware of. "
+        for m in macro[:3]:
+            why    = m.get("why_matters", "")
+            impact = m.get("impact", "neutral")
+            if why:
+                impact_word = (
+                    "a positive development" if impact == "bullish"
+                    else "a potential headwind" if impact == "bearish"
+                    else "worth monitoring"
+                )
+                script += f"{why} This is {impact_word}. "
+        script += "\n\n"
+
+    # ── Closing ─────────────────────────────────────────────────────────────
+    sentiment = summary.get("sentiment_label", "neutral")
+    CLOSE = {
+        "bullish": "Overall a positive picture for your book today. "
+                   "Stay disciplined and have a great session.",
+        "bearish": "Some caution is warranted today. "
+                   "Keep an eye on your risk levels.",
+        "mixed":   "A mixed picture today. Stay informed and trade carefully.",
+        "neutral": "A steady day overall. "
+                   "Keep watching the key levels.",
+    }
+    script += CLOSE.get(sentiment, CLOSE["neutral"])
+    script += " This has been your MarketMind daily brief."
+
+    return script
+
+
+def generate_audio_brief(brief: dict) -> bytes:
+    """
+    Generate MP3 audio from the daily brief using OpenAI TTS.
+    Returns raw MP3 bytes.
+
+    Voice options: alloy, echo, fable, onyx, nova, shimmer
+    onyx = deep, professional male voice — best for financial content
+    nova = warm, clear female voice — good alternative
+    """
+    script = write_audio_script(brief)
+
+    response = client.audio.speech.create(
+        model="tts-1",          # tts-1 = fast, tts-1-hd = higher quality
+        voice="onyx",           # deep professional voice
+        input=script,
+        response_format="mp3",
+        speed=0.95,             # slightly slower than default for clarity
+    )
+
+    return response.content     # raw MP3 bytes
