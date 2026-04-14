@@ -12,7 +12,7 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# ── Global theme CSS (NVIDIA green on black) ──────────────────────────────────
+# ── Global theme CSS ──────────────────────────────────────────────────────────
 st.markdown("""
 <style>
 /* Base */
@@ -20,32 +20,29 @@ st.markdown("""
 section[data-testid="stSidebar"] { background-color: #0f0f0f !important; }
 
 /* Headings */
-h1, h2, h3, h4, h5, h6 { color: #76b900 !important; }
-
-/* Body text */
-p, span, div, label, li { color: #e0e0e0; }
+h1, h2, h3, h4, h5, h6 { color: #7c3aed !important; }
 
 /* Metric cards */
 [data-testid="stMetric"] {
     background: #0f0f0f !important;
-    border: 0.5px solid #76b900 !important;
+    border: 0.5px solid #7c3aed !important;
     border-radius: 8px !important;
     padding: 12px !important;
 }
-[data-testid="stMetricValue"] { color: #76b900 !important; }
+[data-testid="stMetricValue"] { color: #7c3aed !important; }
 [data-testid="stMetricLabel"] { color: #9ca3af !important; }
-[data-testid="stMetricDelta"][data-direction="up"]   { color: #76b900 !important; }
+[data-testid="stMetricDelta"][data-direction="up"]   { color: #a78bfa !important; }
 [data-testid="stMetricDelta"][data-direction="down"]  { color: #ef4444 !important; }
 
 /* Buttons */
 .stButton > button {
-    background: #76b900 !important;
-    color: #000000 !important;
+    background: #7c3aed !important;
+    color: #ffffff !important;
     border: none !important;
     border-radius: 6px !important;
     font-weight: 600 !important;
 }
-.stButton > button:hover { background: #8fd400 !important; }
+.stButton > button:hover { background: #6d28d9 !important; }
 
 /* Inputs */
 input, textarea,
@@ -53,7 +50,7 @@ input, textarea,
 [data-testid="stNumberInput"] input {
     background: #0f0f0f !important;
     color: #e0e0e0 !important;
-    border: 0.5px solid #76b900 !important;
+    border: 0.5px solid #7c3aed !important;
     border-radius: 6px !important;
 }
 
@@ -65,14 +62,14 @@ input, textarea,
     font-weight: 500 !important;
 }
 [data-testid="stSidebarNav"] a:hover {
-    color: #76b900 !important;
+    color: #a78bfa !important;
     background: #1a1a1a !important;
     border-radius: 6px !important;
 }
 [data-testid="stSidebarNav"] a[aria-selected="true"],
 [data-testid="stSidebarNav"] a[aria-current="page"] {
-    color: #76b900 !important;
-    background: #1a2800 !important;
+    color: #a78bfa !important;
+    background: #1e1040 !important;
     border-radius: 6px !important;
     font-weight: 600 !important;
 }
@@ -90,7 +87,7 @@ hr { border-color: #1a1a1a !important; }
 /* Scrollbar */
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: #000000; }
-::-webkit-scrollbar-thumb { background: #76b900; border-radius: 2px; }
+::-webkit-scrollbar-thumb { background: #7c3aed; border-radius: 2px; }
 
 /* DataFrames */
 [data-testid="stDataFrame"] {
@@ -128,7 +125,7 @@ if not st.session_state.get("uid"):
     st.markdown("### AI-powered stock research and daily portfolio brief")
     st.divider()
 
-    st.subheader("Sign In")
+    st.markdown("<h2 style='color:#76b900;border-bottom:1px solid #1a1a1a;padding-bottom:8px'>Sign In</h2>", unsafe_allow_html=True)
     with st.form("login_form"):
         user_id      = st.text_input("User ID", placeholder="your-unique-id")
         display_name = st.text_input("Display Name", placeholder="Jane Smith")
