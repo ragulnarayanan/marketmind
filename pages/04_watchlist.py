@@ -8,6 +8,7 @@ import streamlit as st
 import yfinance as yf
 
 from data.firestore_client import add_to_watchlist, get_watchlist, remove_from_watchlist
+from utils.ui_components import green_badge, neutral_badge, pct_colored, section_header
 from utils.volume_analyzer import detect_volume_spikes
 
 st.set_page_config(page_title="Watchlist | MarketMind", layout="wide")
@@ -121,7 +122,7 @@ if not watchlist:
     st.stop()
 
 st.markdown("---")
-st.markdown("<h2 style='color:#76b900;border-bottom:1px solid #1a1a1a;padding-bottom:8px'>Watching</h2>", unsafe_allow_html=True)
+st.markdown(section_header("Watching"), unsafe_allow_html=True)
 
 header = st.columns([2, 1, 1, 1, 2])
 for col, label in zip(header, ["Ticker", "Price", "Daily %", "Volume", "Actions"]):
@@ -134,8 +135,7 @@ for ticker in watchlist:
     try:
         price, daily = _ticker_price(ticker)
         cols[1].write(f"${price:.2f}")
-        daily_color = "green" if daily >= 0 else "red"
-        cols[2].markdown(f":{daily_color}[{daily:+.2f}%]")
+        cols[2].markdown(pct_colored(daily), unsafe_allow_html=True)
     except Exception:
         cols[1].write("N/A")
         cols[2].write("N/A")
@@ -144,7 +144,7 @@ for ticker in watchlist:
     try:
         spikes       = _ticker_spikes(ticker)
         recent_spike = any(s.get("spike_ratio", 0) >= 2.0 for s in spikes)
-        cols[3].markdown("**Spike**" if recent_spike else "—")
+        cols[3].markdown(green_badge("Spike") if recent_spike else neutral_badge("—"), unsafe_allow_html=True)
     except Exception:
         cols[3].write("—")
 

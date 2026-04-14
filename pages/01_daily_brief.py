@@ -8,34 +8,14 @@ import streamlit as st
 
 from brief import generate_daily_brief
 from data.firestore_client import get_todays_brief
+from utils.ui_components import (
+    macro_card,
+    section_header,
+    sentiment_badge,
+    signal_badge,
+)
 
 st.set_page_config(page_title="Daily Brief | MarketMind", layout="wide")
-
-# ── Badge helpers ─────────────────────────────────────────────────────────────
-
-SIGNAL_STYLE = {
-    "BUY":  "background:#1a2800;color:#76b900;border:1px solid #76b900",
-    "SELL": "background:#2d0000;color:#ef4444;border:1px solid #ef4444",
-    "WAIT": "background:#1a1a00;color:#facc15;border:1px solid #facc15",
-}
-SENTIMENT_STYLE = {
-    "bullish": "background:#1a0533;color:#a78bfa;border:1px solid #7c3aed",
-    "bearish": "background:#2d0000;color:#ef4444;border:1px solid #ef4444",
-    "mixed":   "background:#1a1a00;color:#facc15;border:1px solid #facc15",
-    "neutral": "background:#1a1a1a;color:#9ca3af;border:1px solid #374151",
-}
-
-def signal_badge(signal: str) -> str:
-    style = SIGNAL_STYLE.get(signal.upper(), SIGNAL_STYLE["WAIT"])
-    return (f"<span style='padding:3px 14px;border-radius:20px;"
-            f"font-weight:600;font-size:13px;{style}'>{signal.upper()}</span>")
-
-def section_header(title: str) -> None:
-    st.markdown(
-        f"<h2 style='color:#7c3aed;border-bottom:1px solid #1a1a1a;"
-        f"padding-bottom:8px'>{title}</h2>",
-        unsafe_allow_html=True,
-    )
 
 # ── Auth gate ─────────────────────────────────────────────────────────────────
 
@@ -78,7 +58,7 @@ daily_pnl_pct = daily_pnl / total_market * 100 if total_market else 0.0
 
 # ── Section 1 — Portfolio Overview ───────────────────────────────────────────
 
-section_header("Portfolio Overview")
+st.markdown(section_header("Portfolio Overview"), unsafe_allow_html=True)
 col1, col2, col3 = st.columns(3)
 col1.metric("Total Value",  f"${total_market:,.2f}")
 col2.metric("Today",        f"${daily_pnl:+,.2f}",  f"{daily_pnl_pct:+.2f}%")
@@ -107,7 +87,7 @@ if "audio_brief" in st.session_state:
 # ── Section 2 — Today's Movers ────────────────────────────────────────────────
 
 if holdings:
-    section_header("Today's Movers")
+    st.markdown(section_header("Today's Movers"), unsafe_allow_html=True)
     sorted_holdings = sorted(holdings, key=lambda x: abs(x.get("daily_pct", 0)), reverse=True)
     cols = st.columns(min(len(sorted_holdings), 5))
     for i, h in enumerate(sorted_holdings):
@@ -121,24 +101,23 @@ st.markdown("---")
 
 # ── Section 3 — Portfolio News Summary ───────────────────────────────────────
 
-section_header("Portfolio Summary")
+st.markdown(section_header("Portfolio Summary"), unsafe_allow_html=True)
 summary_data = brief.get("portfolio_summary", {})
 summary_text = summary_data.get("summary", "Summary unavailable.")
 label        = summary_data.get("sentiment_label", "neutral")
 score        = float(summary_data.get("sentiment_score", 5.0))
 
 st.markdown(
-    f"<p style='font-size:16px;line-height:1.9;color:#e0e0e0;"
-    f"background:#0f0f0f;padding:20px;border-radius:10px;"
-    f"border-left:3px solid #7c3aed'>{summary_text}</p>",
+    f"<p style='font-size:16px;line-height:1.9;color:#ffffff;"
+    f"background:#0a0a0a;padding:20px;border-radius:10px;"
+    f"border-left:3px solid #22c55e;font-family:Inter,sans-serif'>"
+    f"{summary_text}</p>",
     unsafe_allow_html=True,
 )
-style = SENTIMENT_STYLE.get(label, SENTIMENT_STYLE["neutral"])
 st.markdown(
-    f"<span style='padding:4px 14px;border-radius:20px;"
-    f"font-size:13px;font-weight:600;{style}'>{label.capitalize()}</span>"
-    f"<span style='color:#6b7280;font-size:13px;margin-left:10px'>"
-    f"Sentiment {score:.1f}/10</span>",
+    sentiment_badge(label) +
+    f"<span style='color:#52525b;font-size:13px;margin-left:10px;"
+    f"font-family:Inter,sans-serif'>Sentiment {score:.1f}/10</span>",
     unsafe_allow_html=True,
 )
 
@@ -146,36 +125,21 @@ st.markdown("---")
 
 # ── Section 4 — Global Headlines ─────────────────────────────────────────────
 
-section_header("Global Headlines to Watch")
+st.markdown(section_header("Global Headlines to Watch"), unsafe_allow_html=True)
 macro = brief.get("macro_alerts", [])
 if not macro:
     st.caption("No significant macro events detected for your portfolio today.")
 else:
-    IMPACT_STYLE = {
-        "bullish": "color:#a78bfa",
-        "bearish": "color:#ef4444",
-        "neutral": "color:#9ca3af",
-    }
     for m in macro:
-        impact   = m.get("impact", "neutral")
-        color    = IMPACT_STYLE.get(impact, "color:#9ca3af")
-        score_m  = m.get("relevance_score", 0)
-        url      = m.get("url") or ""
-        headline = m.get("headline", "")
-        headline_html = (
-            f"<a href='{url}' style='color:#e0e0e0;text-decoration:none'>{headline}</a>"
-            if url else headline
-        )
         st.markdown(
-            f"<div style='background:#0f0f0f;border-radius:8px;"
-            f"padding:12px 16px;margin-bottom:8px;"
-            f"border-left:3px solid #7c3aed'>"
-            f"<span style='font-size:14px;font-weight:600;color:#e0e0e0'>"
-            f"{headline_html}</span><br>"
-            f"<span style='font-size:13px;{color}'>{m.get('why_matters','')}</span>"
-            f"<span style='float:right;font-size:11px;color:#6b7280'>"
-            f"Relevance {score_m}/10</span>"
-            f"</div>",
+            macro_card(
+                headline    = m.get("headline", ""),
+                why_matters = m.get("why_matters", ""),
+                impact      = m.get("impact", "neutral"),
+                score       = m.get("relevance_score", 0),
+                source      = m.get("source_name", ""),
+                url         = m.get("url") or "",
+            ),
             unsafe_allow_html=True,
         )
 
@@ -183,7 +147,7 @@ st.markdown("---")
 
 # ── Buy / Wait / Sell Signals ─────────────────────────────────────────────────
 
-section_header("Signals")
+st.markdown(section_header("Signals"), unsafe_allow_html=True)
 signals = brief.get("signals", {})
 if signals:
     for ticker, sig in signals.items():
@@ -191,7 +155,11 @@ if signals:
         urgency    = sig.get("urgency", "LOW")
         st.markdown(
             f"{signal_badge(signal_val)}"
-            f" &nbsp; **{ticker}** &nbsp; `{urgency}` &nbsp; — {sig.get('reason', '')}",
+            f" &nbsp; <span style='color:#ffffff;font-weight:600;"
+            f"font-family:Inter,sans-serif'>{ticker}</span>"
+            f" &nbsp; <code>{urgency}</code>"
+            f" &nbsp; <span style='color:#a1a1aa;"
+            f"font-family:Inter,sans-serif'>— {sig.get('reason', '')}</span>",
             unsafe_allow_html=True,
         )
         if sig.get("watch_price"):
@@ -203,7 +171,7 @@ st.markdown("---")
 
 # ── Section 5 — Source Links ─────────────────────────────────────────────────
 
-section_header("Further Reading")
+st.markdown(section_header("Further Reading"), unsafe_allow_html=True)
 sources = brief.get("sources", [])
 if not sources:
     st.caption("No source links available.")
@@ -216,9 +184,12 @@ else:
         pub      = s.get("published_at", "")
         st.markdown(
             f"<div style='margin-bottom:6px'>"
-            f"<span style='font-size:11px;color:#7c3aed;font-weight:600'>{ticker}</span> "
-            f"<a href='{url}' style='color:#e0e0e0;font-size:13px'>{headline}...</a> "
-            f"<span style='color:#6b7280;font-size:11px'>· {domain} · {pub}</span>"
+            f"<span style='font-size:11px;color:#22c55e;font-weight:600;"
+            f"font-family:Inter,sans-serif'>{ticker}</span> "
+            f"<a href='{url}' style='color:#ffffff;font-size:13px;"
+            f"font-family:Inter,sans-serif'>{headline}...</a> "
+            f"<span style='color:#52525b;font-size:11px;"
+            f"font-family:Inter,sans-serif'>· {domain} · {pub}</span>"
             f"</div>",
             unsafe_allow_html=True,
         )

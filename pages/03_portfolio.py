@@ -9,6 +9,7 @@ import yfinance as yf
 
 from brief.portfolio_pnl import compute_portfolio_snapshot
 from data.firestore_client import get_portfolio, remove_holding, upsert_holding
+from utils.ui_components import pct_colored, section_header
 
 st.set_page_config(page_title="Portfolio | MarketMind", layout="wide")
 
@@ -90,7 +91,7 @@ if portfolio:
 
     holdings_display = snapshot.get("holdings", [])
     if holdings_display:
-        st.markdown("<h2 style='color:#76b900;border-bottom:1px solid #1a1a1a;padding-bottom:8px'>Holdings</h2>", unsafe_allow_html=True)
+        st.markdown(section_header("Holdings"), unsafe_allow_html=True)
         header_cols = st.columns([2, 1, 1, 1, 1, 1, 1])
         for col, label in zip(
             header_cols,
@@ -104,10 +105,15 @@ if portfolio:
             cols[1].write(f"{row['qty']:.2f}")
             cols[2].write(f"${row['avg_cost']:.2f}")
             cols[3].write(f"${row['current_price']:.2f}")
-            daily_color = "green" if row["daily_pct"] >= 0 else "red"
-            cols[4].markdown(f":{daily_color}[{row['daily_pct']:+.2f}%]")
-            pnl_color = "green" if row["total_pnl"] >= 0 else "red"
-            cols[5].markdown(f":{pnl_color}[${row['total_pnl']:+,.2f} ({row['total_pnl_pct']:+.2f}%)]")
+            cols[4].markdown(pct_colored(row["daily_pct"]), unsafe_allow_html=True)
+            pnl_color = "#22c55e" if row["total_pnl"] >= 0 else "#ef4444"
+            pnl_str   = f"+${row['total_pnl']:,.2f}" if row["total_pnl"] >= 0 else f"-${abs(row['total_pnl']):,.2f}"
+            cols[5].markdown(
+                f"<span style='color:{pnl_color};font-weight:600;"
+                f"font-family:Inter,sans-serif'>{pnl_str} "
+                f"({row['total_pnl_pct']:+.2f}%)</span>",
+                unsafe_allow_html=True,
+            )
             if cols[6].button("Remove", key=f"del_{row['ticker']}"):
                 remove_holding(uid, row["ticker"])
                 st.rerun()
@@ -124,7 +130,7 @@ else:
 
 # ── Add / Update Holding ──────────────────────────────────────────────────────
 st.markdown("---")
-st.markdown("<h2 style='color:#76b900;border-bottom:1px solid #1a1a1a;padding-bottom:8px'>Add / Update Holding</h2>", unsafe_allow_html=True)
+st.markdown(section_header("Add / Update Holding"), unsafe_allow_html=True)
 
 sel_idx = st.selectbox(
     "Select stock",

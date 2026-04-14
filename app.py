@@ -15,84 +15,266 @@ st.set_page_config(
 # ── Global theme CSS ──────────────────────────────────────────────────────────
 st.markdown("""
 <style>
-/* Base */
-.stApp, .main { background-color: #000000 !important; }
-section[data-testid="stSidebar"] { background-color: #0f0f0f !important; }
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
-/* Headings */
-h1, h2, h3, h4, h5, h6 { color: #7c3aed !important; }
+/* ── Reset & Base ─────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
 
-/* Metric cards */
-[data-testid="stMetric"] {
-    background: #0f0f0f !important;
-    border: 0.5px solid #7c3aed !important;
-    border-radius: 8px !important;
-    padding: 12px !important;
-}
-[data-testid="stMetricValue"] { color: #7c3aed !important; }
-[data-testid="stMetricLabel"] { color: #9ca3af !important; }
-[data-testid="stMetricDelta"][data-direction="up"]   { color: #a78bfa !important; }
-[data-testid="stMetricDelta"][data-direction="down"]  { color: #ef4444 !important; }
-
-/* Buttons */
-.stButton > button {
-    background: #7c3aed !important;
-    color: #ffffff !important;
-    border: none !important;
-    border-radius: 6px !important;
-    font-weight: 600 !important;
-}
-.stButton > button:hover { background: #6d28d9 !important; }
-
-/* Inputs */
-input, textarea,
-[data-testid="stTextInput"] input,
-[data-testid="stNumberInput"] input {
-    background: #0f0f0f !important;
-    color: #e0e0e0 !important;
-    border: 0.5px solid #7c3aed !important;
-    border-radius: 6px !important;
+.stApp, .main, [data-testid="stAppViewContainer"] {
+    background: #000000 !important;
+    font-family: 'Inter', sans-serif !important;
 }
 
-/* Sidebar nav links — same on every page */
-[data-testid="stSidebarNav"] a,
-[data-testid="stSidebarNav"] span {
-    color: #e0e0e0 !important;
-    font-size: 15px !important;
+/* ── Sidebar ──────────────────────────────────────────────────── */
+section[data-testid="stSidebar"] {
+    background: #0a0a0a !important;
+    border-right: 1px solid #1a1a1a !important;
+}
+
+/* ── Nav links — identical across ALL pages ────────────────────── */
+[data-testid="stSidebarNav"] a {
+    color: #a1a1aa !important;
+    font-family: 'Inter', sans-serif !important;
+    font-size: 14px !important;
     font-weight: 500 !important;
+    letter-spacing: 0.01em !important;
+    padding: 8px 12px !important;
+    border-radius: 6px !important;
+    transition: all 0.15s ease !important;
+    display: block !important;
 }
 [data-testid="stSidebarNav"] a:hover {
-    color: #a78bfa !important;
-    background: #1a1a1a !important;
-    border-radius: 6px !important;
+    color: #ffffff !important;
+    background: #111111 !important;
 }
-[data-testid="stSidebarNav"] a[aria-selected="true"],
-[data-testid="stSidebarNav"] a[aria-current="page"] {
-    color: #a78bfa !important;
-    background: #1e1040 !important;
-    border-radius: 6px !important;
+[data-testid="stSidebarNav"] a[aria-current="page"],
+[data-testid="stSidebarNav"] a[aria-selected="true"] {
+    color: #22c55e !important;
+    background: rgba(34,197,94,0.08) !important;
+    border-left: 2px solid #22c55e !important;
+    padding-left: 10px !important;
+}
+[data-testid="stSidebarNav"] span {
+    font-size: 14px !important;
+    font-weight: 500 !important;
+}
+
+/* ── Headings ─────────────────────────────────────────────────── */
+h1 {
+    font-family: 'Inter', sans-serif !important;
+    font-size: 26px !important;
+    font-weight: 700 !important;
+    color: #ffffff !important;
+    letter-spacing: -0.02em !important;
+}
+h2 {
+    font-family: 'Inter', sans-serif !important;
+    font-size: 18px !important;
     font-weight: 600 !important;
+    color: #ffffff !important;
+    letter-spacing: -0.01em !important;
+    border-bottom: 1px solid #1a1a1a !important;
+    padding-bottom: 10px !important;
+    margin-bottom: 16px !important;
+}
+h3, h4 {
+    font-family: 'Inter', sans-serif !important;
+    font-weight: 600 !important;
+    color: #ffffff !important;
+}
+p, span, div, label, li {
+    font-family: 'Inter', sans-serif !important;
+    color: #a1a1aa;
 }
 
-/* Dividers */
-hr { border-color: #1a1a1a !important; }
+/* ── Metric cards ─────────────────────────────────────────────── */
+[data-testid="stMetric"] {
+    background: #0a0a0a !important;
+    border: 1px solid #1a1a1a !important;
+    border-radius: 10px !important;
+    padding: 16px 20px !important;
+    transition: border-color 0.2s ease, background 0.2s ease !important;
+}
+[data-testid="stMetric"]:hover {
+    border-color: #22c55e !important;
+    background: rgba(34,197,94,0.04) !important;
+}
+[data-testid="stMetricLabel"] {
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    color: #52525b !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.06em !important;
+}
+[data-testid="stMetricValue"] {
+    font-size: 24px !important;
+    font-weight: 700 !important;
+    color: #ffffff !important;
+    letter-spacing: -0.02em !important;
+}
+[data-testid="stMetricDelta"] {
+    font-size: 13px !important;
+    font-weight: 500 !important;
+}
+[data-testid="stMetricDelta"][data-direction="up"]   { color: #22c55e !important; }
+[data-testid="stMetricDelta"][data-direction="down"]  { color: #ef4444 !important; }
 
-/* Expanders */
-[data-testid="stExpander"] {
-    background: #0f0f0f !important;
-    border: 0.5px solid #1a1a1a !important;
+/* ── Buttons ──────────────────────────────────────────────────── */
+.stButton > button {
+    font-family: 'Inter', sans-serif !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.01em !important;
+    background: #22c55e !important;
+    color: #000000 !important;
+    border: none !important;
     border-radius: 8px !important;
+    padding: 10px 20px !important;
+    transition: background 0.2s ease, transform 0.1s ease,
+                box-shadow 0.2s ease !important;
+    box-shadow: 0 0 0 0 rgba(34,197,94,0) !important;
+}
+.stButton > button:hover {
+    background: #16a34a !important;
+    box-shadow: 0 0 16px rgba(34,197,94,0.3) !important;
+    transform: translateY(-1px) !important;
+}
+.stButton > button:active {
+    transform: translateY(0) !important;
+    background: #15803d !important;
 }
 
-/* Scrollbar */
-::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-track { background: #000000; }
-::-webkit-scrollbar-thumb { background: #7c3aed; border-radius: 2px; }
+/* Secondary button — outline style */
+.stButton > button[kind="secondary"] {
+    background: transparent !important;
+    color: #22c55e !important;
+    border: 1px solid #22c55e !important;
+}
+.stButton > button[kind="secondary"]:hover {
+    background: rgba(34,197,94,0.08) !important;
+}
 
-/* DataFrames */
-[data-testid="stDataFrame"] {
-    background: #0f0f0f !important;
-    border: 0.5px solid #1a1a1a !important;
+/* ── Text inputs ──────────────────────────────────────────────── */
+[data-testid="stTextInput"] input,
+[data-testid="stNumberInput"] input,
+textarea {
+    font-family: 'Inter', sans-serif !important;
+    font-size: 14px !important;
+    background: #0a0a0a !important;
+    color: #ffffff !important;
+    border: 1px solid #1a1a1a !important;
+    border-radius: 8px !important;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+}
+[data-testid="stTextInput"] input:focus,
+[data-testid="stNumberInput"] input:focus,
+textarea:focus {
+    border-color: #22c55e !important;
+    box-shadow: 0 0 0 3px rgba(34,197,94,0.1) !important;
+    outline: none !important;
+}
+
+/* ── Selectbox ────────────────────────────────────────────────── */
+[data-testid="stSelectbox"] > div > div {
+    background: #0a0a0a !important;
+    border: 1px solid #1a1a1a !important;
+    border-radius: 8px !important;
+    color: #ffffff !important;
+}
+
+/* ── DataFrames / Tables ──────────────────────────────────────── */
+[data-testid="stDataFrame"], .stDataFrame {
+    background: #0a0a0a !important;
+    border: 1px solid #1a1a1a !important;
+    border-radius: 10px !important;
+}
+[data-testid="stDataFrame"] th {
+    background: #111111 !important;
+    color: #52525b !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.06em !important;
+    border-bottom: 1px solid #1a1a1a !important;
+}
+[data-testid="stDataFrame"] td {
+    color: #ffffff !important;
+    font-size: 14px !important;
+    border-bottom: 1px solid #0f0f0f !important;
+}
+
+/* ── Expanders ────────────────────────────────────────────────── */
+[data-testid="stExpander"] {
+    background: #0a0a0a !important;
+    border: 1px solid #1a1a1a !important;
+    border-radius: 10px !important;
+}
+[data-testid="stExpander"]:hover {
+    border-color: #22c55e !important;
+}
+[data-testid="stExpander"] summary {
+    color: #ffffff !important;
+    font-weight: 500 !important;
+}
+
+/* ── Dividers ─────────────────────────────────────────────────── */
+hr {
+    border: none !important;
+    border-top: 1px solid #1a1a1a !important;
+    margin: 20px 0 !important;
+}
+
+/* ── Scrollbar ────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: #000000; }
+::-webkit-scrollbar-thumb {
+    background: #22c55e;
+    border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover { background: #16a34a; }
+
+/* ── Status / spinner ─────────────────────────────────────────── */
+[data-testid="stStatusWidget"] {
+    background: #0a0a0a !important;
+    border: 1px solid #1a1a1a !important;
+    border-radius: 10px !important;
+}
+
+/* ── Alerts / info boxes ──────────────────────────────────────── */
+[data-testid="stAlert"] {
+    background: #0a0a0a !important;
+    border-radius: 8px !important;
+    font-family: 'Inter', sans-serif !important;
+}
+
+/* ── Caption / small text ─────────────────────────────────────── */
+[data-testid="stCaptionContainer"] {
+    color: #52525b !important;
+    font-size: 12px !important;
+}
+
+/* ── Tabs ─────────────────────────────────────────────────────── */
+[data-testid="stTabs"] [role="tablist"] {
+    background: #0a0a0a !important;
+    border-bottom: 1px solid #1a1a1a !important;
+    gap: 0 !important;
+}
+[data-testid="stTabs"] [role="tab"] {
+    color: #52525b !important;
+    font-family: 'Inter', sans-serif !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    padding: 10px 20px !important;
+    border-bottom: 2px solid transparent !important;
+    transition: color 0.15s ease !important;
+}
+[data-testid="stTabs"] [role="tab"]:hover {
+    color: #ffffff !important;
+}
+[data-testid="stTabs"] [aria-selected="true"] {
+    color: #22c55e !important;
+    border-bottom: 2px solid #22c55e !important;
+    background: transparent !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -125,7 +307,7 @@ if not st.session_state.get("uid"):
     st.markdown("### AI-powered stock research and daily portfolio brief")
     st.divider()
 
-    st.markdown("<h2 style='color:#76b900;border-bottom:1px solid #1a1a1a;padding-bottom:8px'>Sign In</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='color:#22c55e;border-bottom:1px solid #1a1a1a;padding-bottom:8px;font-family:Inter,sans-serif'>Sign In</h2>", unsafe_allow_html=True)
     with st.form("login_form"):
         user_id      = st.text_input("User ID", placeholder="your-unique-id")
         display_name = st.text_input("Display Name", placeholder="Jane Smith")

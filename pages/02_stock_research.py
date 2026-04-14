@@ -10,6 +10,7 @@ import streamlit as st
 import yfinance as yf
 
 from agents import run_stock_research
+from utils.ui_components import green_badge, neutral_badge, red_badge, sentiment_badge, signal_badge
 
 st.set_page_config(page_title="Stock Research | MarketMind", layout="wide")
 
@@ -158,13 +159,17 @@ for tab, (ticker, result) in zip(stock_tabs, ready):
                 ))
                 fig.add_trace(go.Bar(
                     x=hist.index, y=hist["Volume"], name="Volume",
-                    marker_color="rgba(124,58,237,0.3)", yaxis="y2",
+                    marker_color="rgba(34,197,94,0.3)", yaxis="y2",
                 ))
                 fig.update_layout(
                     title=f"{ticker} — 1-Year Price and Volume",
                     yaxis2=dict(overlaying="y", side="right", showgrid=False),
                     xaxis_rangeslider_visible=False,
                     height=380,
+                    template="plotly_dark",
+                    paper_bgcolor="#000000",
+                    plot_bgcolor="#0a0a0a",
+                    font=dict(family="Inter, sans-serif", color="#a1a1aa"),
                 )
                 st.plotly_chart(fig, use_container_width=True)
         except Exception:
@@ -177,9 +182,13 @@ for tab, (ticker, result) in zip(stock_tabs, ready):
         with tab_news:
             news = result.get("news", {})
             sentiment = news.get("sentiment_label", "neutral")
-            s_color = {"bullish": "green", "bearish": "red", "neutral": "orange"}.get(sentiment, "orange")
-            s_label = {"bullish": "BULLISH", "bearish": "BEARISH", "neutral": "NEUTRAL"}.get(sentiment, sentiment.upper())
-            st.markdown(f"### :{s_color}[{s_label}]  — Score {news.get('sentiment_score', 'N/A')}/10")
+            st.markdown(
+                sentiment_badge(sentiment) +
+                f"<span style='color:#52525b;font-size:13px;margin-left:10px;"
+                f"font-family:Inter,sans-serif'>Score {news.get('sentiment_score', 'N/A')}/10</span>",
+                unsafe_allow_html=True,
+            )
+            st.markdown("<br>", unsafe_allow_html=True)
             st.write(news.get("summary", ""))
             st.caption(f"Top headline: {news.get('top_headline', 'N/A')}")
             col_ev, col_risk = st.columns(2)
@@ -245,8 +254,21 @@ for tab, (ticker, result) in zip(stock_tabs, ready):
             v      = verdict.get("verdict", "HOLD")
             conf   = verdict.get("confidence", "LOW")
             score  = verdict.get("confidence_score", 0)
-            v_color = {"BUY": "green", "SELL": "red", "HOLD": "orange"}.get(v, "orange")
-            st.markdown(f"## :{v_color}[{v}]  — Confidence: {conf}  ({score}/10)")
+            v_upper = v.upper()
+            if v_upper == "BUY":
+                v_badge = green_badge("BUY")
+            elif v_upper == "SELL":
+                v_badge = red_badge("SELL")
+            else:
+                v_badge = neutral_badge(v_upper)
+            st.markdown(
+                v_badge +
+                f"<span style='color:#a1a1aa;font-size:14px;margin-left:12px;"
+                f"font-family:Inter,sans-serif'>Confidence: {conf} &nbsp;·&nbsp; "
+                f"{score}/10</span>",
+                unsafe_allow_html=True,
+            )
+            st.markdown("<br>", unsafe_allow_html=True)
             st.progress(score * 10, text=f"Confidence score: {score}/10")
             st.markdown("**Reasoning**")
             for point in verdict.get("reasoning", []):
