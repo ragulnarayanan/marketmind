@@ -71,7 +71,7 @@ def _extract_domain(url: str) -> str:
 
 async def summarize_stock_news_for_brief(
     ticker: str,
-    hours_back: int = 24,
+    hours_back: int = 168,
 ) -> dict:
     """
     Retrieve news chunks for ticker from Qdrant (last hours_back hours).
