@@ -63,7 +63,7 @@ if holdings:
     c3.metric("Positions",             str(len(holdings)))
 
 # ── Per-Stock News ────────────────────────────────────────────────────────────
-st.subheader("Stock News (Last 24h)")
+st.subheader("News Brief")
 stock_news = brief.get("stock_news", {})
 for ticker, news in stock_news.items():
     sentiment = news.get("sentiment", "neutral")
@@ -71,7 +71,11 @@ for ticker, news in stock_news.items():
     sentiment_label = {"bullish": "Bullish", "bearish": "Bearish", "neutral": "Neutral"}.get(sentiment, "Neutral")
     with st.expander(f"{ticker} — {news.get('top_headline', 'No headline')}"):
         st.markdown(f":{sentiment_color}[**{sentiment_label}**]")
-        st.write(news.get("summary", ""))
+        summary_text = news.get("summary", "")
+        st.markdown(
+            f"<p style='font-size:15px; line-height:1.7;'>{summary_text}</p>",
+            unsafe_allow_html=True,
+        )
         score = news.get("score", 5.0)
         st.progress(min(int(score * 10), 100), text=f"Sentiment score: {score:.1f}/10")
         sources = news.get("sources", [])
