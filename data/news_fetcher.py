@@ -4,7 +4,6 @@ deduplicate via content hash, embed, and store in Qdrant.
 """
 import asyncio
 import hashlib
-import time
 from datetime import datetime, timedelta, timezone
 from uuid import uuid4
 
@@ -117,7 +116,8 @@ def _build_payload(
     title: str,
     description: str,
     full_text: str | None,
-    url: str,
+    url: str | None,
+    has_url: bool,
     source_name: str,
     tickers: list[str],
     sectors: list[str],
@@ -132,6 +132,7 @@ def _build_payload(
         "description":     description[:500],
         "full_text":       full_text,
         "url":             url,
+        "has_url":         has_url,
         "source_name":     source_name,
         "tickers":         tickers,
         "sectors":         sectors,
@@ -144,10 +145,6 @@ def _build_payload(
         "has_full_text":   full_text is not None,
         "content_hash":    _compute_hash(title, source_name, published_date),
     }
-
-
-def _ts_to_date(ts: int) -> str:
-    return datetime.fromtimestamp(ts, tz=timezone.utc).strftime("%Y-%m-%d")
 
 
 # ── Shared dedup + upsert ─────────────────────────────────────────────────────
@@ -187,41 +184,13 @@ async def fetch_and_store_ticker_news(
     Scrape full text via trafilatura (best effort).
     Embed and store in Qdrant. Return list of stored article dicts.
     """
-    cutoff = since or (datetime.now(timezone.utc) - timedelta(days=NEWS_LOOKBACK_DAYS))
-    sector  = await asyncio.to_thread(get_sector, ticker)
+    cutoff     = since or (datetime.now(timezone.utc) - timedelta(days=NEWS_LOOKBACK_DAYS))
+    sector     = await asyncio.to_thread(get_sector, ticker)
+    from_date  = (datetime.now() - timedelta(days=NEWS_LOOKBACK_DAYS)).strftime("%Y-%m-%d")
+    to_date    = datetime.now().strftime("%Y-%m-%d")
     raw: list[dict] = []
 
-    # ── Finnhub ────────────────────────────────────────────────────────────────
-    try:
-        from_ts = int(cutoff.timestamp())
-        to_ts   = int(datetime.now(timezone.utc).timestamp())
-        fh_news = await asyncio.to_thread(
-            _finnhub.company_news, ticker, _ts_to_date(from_ts), _ts_to_date(to_ts)
-        )
-        for a in (fh_news or []):
-            title = (a.get("headline") or "").strip()
-            url   = (a.get("url")      or "").strip()
-            if not title or not url:
-                continue
-            pub = datetime.fromtimestamp(a.get("datetime", time.time()), tz=timezone.utc)
-            if pub < cutoff:
-                continue
-            full_text = await asyncio.to_thread(_scrape_full_text, url)
-            raw.append(_build_payload(
-                title=title,
-                description=a.get("summary", ""),
-                full_text=full_text,
-                url=url,
-                source_name=a.get("source", "Finnhub"),
-                tickers=[ticker],
-                sectors=[sector],
-                published_at=pub,
-                source_api="finnhub",
-            ))
-    except Exception:
-        pass
-
-    # ── NewsAPI ────────────────────────────────────────────────────────────────
+    # ── NewsAPI (primary — real scrapeable URLs) ───────────────────────────────
     try:
         resp = await asyncio.to_thread(
             _newsapi.get_everything,
@@ -237,7 +206,9 @@ async def fetch_and_store_ticker_news(
             if not title or not url or title == "[Removed]":
                 continue
             try:
-                pub = datetime.fromisoformat(a["publishedAt"].replace("Z", "+00:00"))
+                pub = datetime.strptime(
+                    a.get("publishedAt", ""), "%Y-%m-%dT%H:%M:%SZ"
+                ).replace(tzinfo=timezone.utc)
             except Exception:
                 pub = datetime.now(timezone.utc)
             if pub < cutoff:
@@ -249,11 +220,42 @@ async def fetch_and_store_ticker_news(
                 description=description,
                 full_text=full_text,
                 url=url,
+                has_url=True,
                 source_name=(a.get("source") or {}).get("name", "NewsAPI"),
                 tickers=[ticker],
                 sectors=[sector],
                 published_at=pub,
                 source_api="newsapi",
+            ))
+    except Exception:
+        pass
+
+    # ── Finnhub (secondary — headline + summary only, no usable URL) ──────────
+    try:
+        fh_news = await asyncio.to_thread(
+            _finnhub.company_news, ticker, _from=from_date, to=to_date
+        )
+        for a in (fh_news or []):
+            title = (a.get("headline") or "").strip()
+            if not title:
+                continue
+            pub_ts = a.get("datetime")
+            if not pub_ts:
+                continue
+            pub = datetime.fromtimestamp(pub_ts, tz=timezone.utc)
+            if pub < cutoff:
+                continue
+            raw.append(_build_payload(
+                title=title,
+                description=a.get("summary", ""),
+                full_text=None,          # no scraping — Finnhub URLs are unusable
+                url=None,
+                has_url=False,
+                source_name=a.get("source", "Finnhub"),
+                tickers=[ticker],
+                sectors=[sector],
+                published_at=pub,
+                source_api="finnhub",
             ))
     except Exception:
         pass
@@ -300,6 +302,7 @@ async def fetch_macro_news() -> list[dict]:
                     description=description,
                     full_text=full_text,
                     url=url,
+                    has_url=True,
                     source_name=(a.get("source") or {}).get("name", "NewsAPI"),
                     tickers=[],
                     sectors=["macro"],

@@ -22,6 +22,10 @@ You are a financial news analyst writing a daily stock brief.
 Synthesize the following news articles about {ticker} into a single
 coherent paragraph of 3-5 sentences.
 
+IMPORTANT: Only summarize the articles provided below.
+Do not use any prior knowledge about this company.
+If the articles are insufficient, say so explicitly.
+
 Rules:
 - Cover the most important developments only
 - Explicitly mention tension or contradiction if news is mixed
@@ -96,7 +100,7 @@ async def summarize_stock_news_for_brief(
         if not articles:
             return {
                 "ticker":          ticker,
-                "summary":         "No news found in the last 24 hours.",
+                "summary":         "No news available for this ticker in the last 24 hours.",
                 "sentiment_label": "neutral",
                 "sentiment_score": 5.0,
                 "article_count":   0,
@@ -117,9 +121,10 @@ async def summarize_stock_news_for_brief(
         response = await asyncio.to_thread(_llm.invoke, messages)
         result   = parse_llm_json(response.content.strip())
 
-        # Build top-5 sources sorted by impact_score desc
+        # Build top-5 sources — only articles with real URLs (NewsAPI), sorted by impact_score
+        url_articles = [a for a in articles if a.get("has_url") and a.get("url")]
         top_articles = sorted(
-            articles, key=lambda a: a.get("impact_score", 0), reverse=True
+            url_articles, key=lambda a: a.get("impact_score", 40), reverse=True
         )[:5]
         sources = []
         for a in top_articles:
