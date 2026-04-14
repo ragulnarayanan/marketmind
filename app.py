@@ -12,11 +12,122 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# Hide Streamlit's auto-generated page navigation (we use custom links below)
-st.markdown(
-    "<style>[data-testid='stSidebarNav']{display:none!important}</style>",
-    unsafe_allow_html=True,
-)
+# ── Global dark theme + nav consistency ──────────────────────────────────────
+st.markdown("""
+<style>
+/* ── Base background ── */
+.stApp, .main, section[data-testid="stSidebar"] {
+    background-color: #0a0a0a !important;
+}
+
+/* ── Text ── */
+body, p, span, div, label {
+    color: #e0e0e0 !important;
+}
+
+h1, h2, h3 { color: #00d4ff !important; }
+h4, h5, h6 { color: #7ee8a2 !important; }
+
+/* ── Metric cards ── */
+[data-testid="stMetric"] {
+    background: #111827 !important;
+    border: 0.5px solid #1f2937 !important;
+    border-radius: 10px !important;
+    padding: 12px !important;
+}
+[data-testid="stMetricValue"]  { color: #00d4ff !important; font-size: 22px !important; }
+[data-testid="stMetricLabel"]  { color: #9ca3af !important; }
+[data-testid="stMetricDelta"]  { font-size: 14px !important; }
+
+/* ── Positive / negative deltas ── */
+[data-testid="stMetricDelta"][data-direction="up"]   { color: #10b981 !important; }
+[data-testid="stMetricDelta"][data-direction="down"]  { color: #ef4444 !important; }
+
+/* ── Cards / containers ── */
+[data-testid="stVerticalBlock"] > div {
+    background: #111827;
+    border-radius: 10px;
+}
+
+/* ── Buttons ── */
+.stButton > button {
+    background: #1d4ed8 !important;
+    color: #ffffff !important;
+    border: none !important;
+    border-radius: 8px !important;
+    font-weight: 500 !important;
+}
+.stButton > button:hover {
+    background: #2563eb !important;
+}
+
+/* ── Inputs ── */
+input, textarea, select,
+[data-testid="stTextInput"] input,
+[data-testid="stNumberInput"] input {
+    background: #1f2937 !important;
+    color: #e0e0e0 !important;
+    border: 0.5px solid #374151 !important;
+    border-radius: 8px !important;
+}
+
+/* ── Selectbox / dropdowns ── */
+[data-testid="stSelectbox"] > div {
+    background: #1f2937 !important;
+    border-color: #374151 !important;
+}
+
+/* ── Sidebar nav links ── */
+[data-testid="stSidebarNav']{display:none!important}
+[data-testid="stSidebarNav"] a {
+    color: #e0e0e0 !important;
+    font-size: 15px !important;
+    font-weight: 500 !important;
+    padding: 6px 12px !important;
+}
+[data-testid="stSidebarNav"] a:hover {
+    color: #00d4ff !important;
+    background: #1f2937 !important;
+    border-radius: 6px !important;
+}
+[data-testid="stSidebarNav"] a[aria-selected="true"] {
+    color: #00d4ff !important;
+    background: #1e3a5f !important;
+    border-radius: 6px !important;
+}
+section[data-testid="stSidebarNav"] span {
+    font-size: 15px !important;
+    font-weight: 500 !important;
+}
+
+/* ── Dividers ── */
+hr { border-color: #1f2937 !important; }
+
+/* ── Badges / status ── */
+.stBadge { border-radius: 20px !important; font-weight: 500 !important; }
+
+/* ── DataFrames / tables ── */
+[data-testid="stDataFrame"] {
+    background: #111827 !important;
+    border: 0.5px solid #1f2937 !important;
+}
+
+/* ── Expanders ── */
+[data-testid="stExpander"] {
+    background: #111827 !important;
+    border: 0.5px solid #1f2937 !important;
+    border-radius: 8px !important;
+}
+
+/* ── Status boxes ── */
+[data-testid="stStatusWidget"] { background: #111827 !important; }
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #0a0a0a; }
+::-webkit-scrollbar-thumb { background: #374151; border-radius: 3px; }
+</style>
+""", unsafe_allow_html=True)
 
 # ── Qdrant collection bootstrap (once per session) ────────────────────────────
 if not st.session_state.get("_qdrant_init"):

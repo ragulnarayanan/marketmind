@@ -38,7 +38,7 @@ if brief.get("empty"):
     st.stop()
 
 # ── Portfolio Performance ─────────────────────────────────────────────────────
-st.subheader("Portfolio Performance")
+st.markdown("<h2 style='color:#00d4ff'>Portfolio Performance</h2>", unsafe_allow_html=True)
 snapshot = brief.get("portfolio_snapshot", {})
 holdings = snapshot.get("holdings", [])
 
@@ -63,14 +63,23 @@ if holdings:
     c3.metric("Positions",             str(len(holdings)))
 
 # ── Per-Stock News ────────────────────────────────────────────────────────────
-st.subheader("News Brief")
+st.markdown("<h2 style='color:#7ee8a2'>News Brief</h2>", unsafe_allow_html=True)
 stock_news = brief.get("stock_news", {})
 for ticker, news in stock_news.items():
     sentiment = news.get("sentiment", "neutral")
-    sentiment_color = {"bullish": "green", "bearish": "red", "neutral": "orange"}.get(sentiment, "orange")
+    SENTIMENT_COLORS = {
+        "bullish": "background:#065f46;color:#6ee7b7",
+        "bearish": "background:#7f1d1d;color:#fca5a5",
+        "neutral": "background:#1f2937;color:#9ca3af",
+    }
+    sentiment_style = SENTIMENT_COLORS.get(sentiment, SENTIMENT_COLORS["neutral"])
     sentiment_label = {"bullish": "Bullish", "bearish": "Bearish", "neutral": "Neutral"}.get(sentiment, "Neutral")
     st.markdown(f"**{ticker}** — {news.get('top_headline', 'No headline')}")
-    st.markdown(f":{sentiment_color}[**{sentiment_label}**]")
+    st.markdown(
+        f"<span style='padding:4px 12px;border-radius:20px;font-weight:600;{sentiment_style}'>"
+        f"{sentiment_label}</span>",
+        unsafe_allow_html=True,
+    )
     summary_text = news.get("summary", "")
     st.markdown(
         f"<p style='font-size:15px; line-height:1.7;'>{summary_text}</p>",
@@ -100,7 +109,7 @@ for ticker, news in stock_news.items():
 # ── Macro Alerts ──────────────────────────────────────────────────────────────
 macro = brief.get("macro_alerts", [])
 if macro:
-    st.subheader("Macro Alerts")
+    st.markdown("<h2 style='color:#f59e0b'>Macro Alerts</h2>", unsafe_allow_html=True)
     for alert in macro:
         score     = alert.get("relevance_score", 0)
         direction = alert.get("impact_direction", "neutral")
@@ -111,16 +120,23 @@ if macro:
         )
 
 # ── Buy / Wait / Sell Signals ─────────────────────────────────────────────────
-st.subheader("Signals")
+st.markdown("<h2 style='color:#a78bfa'>Signals</h2>", unsafe_allow_html=True)
 signals = brief.get("signals", {})
+SIGNAL_COLORS = {
+    "BUY":  "background:#065f46;color:#6ee7b7",
+    "SELL": "background:#7f1d1d;color:#fca5a5",
+    "WAIT": "background:#1e3a5f;color:#93c5fd",
+}
 if signals:
     for ticker, sig in signals.items():
         signal_val = sig.get("signal", "WAIT")
         urgency    = sig.get("urgency", "LOW")
-        color = {"BUY": "green", "SELL": "red", "WAIT": "orange"}.get(signal_val, "orange")
-        badge = f":{color}[**{signal_val}**]"
+        style      = SIGNAL_COLORS.get(signal_val, SIGNAL_COLORS["WAIT"])
         st.markdown(
-            f"{badge} &nbsp; **{ticker}** &nbsp; `{urgency}` &nbsp; — {sig.get('reason', '')}"
+            f"<span style='padding:4px 12px;border-radius:20px;font-weight:600;{style}'>"
+            f"{signal_val}</span>"
+            f" &nbsp; **{ticker}** &nbsp; `{urgency}` &nbsp; — {sig.get('reason', '')}",
+            unsafe_allow_html=True,
         )
         if sig.get("watch_price"):
             st.caption(f"Watch price: ${sig['watch_price']:.2f}")
