@@ -74,6 +74,23 @@ for ticker, news in stock_news.items():
         st.write(news.get("summary", ""))
         score = news.get("score", 5.0)
         st.progress(min(int(score * 10), 100), text=f"Sentiment score: {score:.1f}/10")
+        sources = news.get("sources", [])
+        if sources:
+            st.markdown("**Sources:**")
+            for s in sources:
+                url         = s.get("url", "")
+                headline    = s.get("headline", "")
+                source_name = s.get("source_name", "")
+                domain      = s.get("domain", source_name)
+                published   = s.get("published_at", "")
+                if url and headline:
+                    st.markdown(
+                        f"→ [{headline[:70]}...]({url})  "
+                        f"<span style='color:gray;font-size:12px'>{domain} · {published}</span>",
+                        unsafe_allow_html=True,
+                    )
+        else:
+            st.caption("No source links available for this ticker.")
 
 # ── Macro Alerts ──────────────────────────────────────────────────────────────
 macro = brief.get("macro_alerts", [])
