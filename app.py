@@ -7,7 +7,8 @@ import os
 import streamlit as st
 
 st.set_page_config(
-    page_title="Home",
+    page_title="MarketMind",
+    page_icon="📈",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -18,12 +19,18 @@ st.markdown("""
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 /* ── Reset & Base ─────────────────────────────────────────────── */
-*, *::before, *::after { box-sizing: border-box; }
+*, *::before, *::after {
+    box-sizing: border-box;
+    text-transform: none !important;
+}
 
 .stApp, .main, [data-testid="stAppViewContainer"] {
     background: #000000 !important;
     font-family: 'Inter', sans-serif !important;
 }
+
+/* ── Hide auto-generated Streamlit nav (prevents duplicate menu) ─ */
+[data-testid="stSidebarNav"] { display: none !important; }
 
 /* ── Sidebar ──────────────────────────────────────────────────── */
 section[data-testid="stSidebar"] {
@@ -31,53 +38,33 @@ section[data-testid="stSidebar"] {
     border-right: 1px solid #1a1a1a !important;
 }
 
-/* ── Nav links — identical across ALL pages ────────────────────── */
-[data-testid="stSidebarNav"] a {
-    color: #a1a1aa !important;
-    font-family: 'Inter', sans-serif !important;
-    font-size: 14px !important;
-    font-weight: 500 !important;
-    letter-spacing: 0.01em !important;
-    padding: 8px 12px !important;
-    border-radius: 6px !important;
-    transition: all 0.15s ease !important;
-    display: block !important;
-}
-[data-testid="stSidebarNav"] a:hover {
-    color: #ffffff !important;
-    background: #111111 !important;
-}
-[data-testid="stSidebarNav"] a[aria-current="page"],
-[data-testid="stSidebarNav"] a[aria-selected="true"] {
-    color: #22c55e !important;
-    background: rgba(34,197,94,0.08) !important;
-    border-left: 2px solid #22c55e !important;
-    padding-left: 10px !important;
-}
-[data-testid="stSidebarNav"] span {
-    font-size: 14px !important;
-    font-weight: 500 !important;
-}
-
 /* ── Headings ─────────────────────────────────────────────────── */
 h1 {
     font-family: 'Inter', sans-serif !important;
-    font-size: 26px !important;
+    font-size: 28px !important;
     font-weight: 700 !important;
     color: #ffffff !important;
     letter-spacing: -0.02em !important;
+    text-transform: none !important;
 }
 h2 {
     font-family: 'Inter', sans-serif !important;
-    font-size: 18px !important;
+    font-size: 14px !important;
     font-weight: 600 !important;
-    color: #ffffff !important;
-    letter-spacing: -0.01em !important;
-    border-bottom: 1px solid #1a1a1a !important;
-    padding-bottom: 10px !important;
+    color: #76b900 !important;
+    letter-spacing: 0.06em !important;
+    text-transform: uppercase !important;
+    border-bottom: 1px solid rgba(118,185,0,0.2) !important;
+    padding-bottom: 8px !important;
     margin-bottom: 16px !important;
 }
-h3, h4 {
+h3 {
+    font-family: 'Inter', sans-serif !important;
+    font-weight: 600 !important;
+    color: #ffffff !important;
+    text-transform: none !important;
+}
+h4 {
     font-family: 'Inter', sans-serif !important;
     font-weight: 600 !important;
     color: #ffffff !important;
@@ -96,8 +83,8 @@ p, span, div, label, li {
     transition: border-color 0.2s ease, background 0.2s ease !important;
 }
 [data-testid="stMetric"]:hover {
-    border-color: #22c55e !important;
-    background: rgba(34,197,94,0.04) !important;
+    border-color: #76b900 !important;
+    background: rgba(118,185,0,0.04) !important;
 }
 [data-testid="stMetricLabel"] {
     font-size: 12px !important;
@@ -116,7 +103,7 @@ p, span, div, label, li {
     font-size: 13px !important;
     font-weight: 500 !important;
 }
-[data-testid="stMetricDelta"][data-direction="up"]   { color: #22c55e !important; }
+[data-testid="stMetricDelta"][data-direction="up"]   { color: #76b900 !important; }
 [data-testid="stMetricDelta"][data-direction="down"]  { color: #ef4444 !important; }
 
 /* ── Buttons ──────────────────────────────────────────────────── */
@@ -125,33 +112,32 @@ p, span, div, label, li {
     font-size: 14px !important;
     font-weight: 600 !important;
     letter-spacing: 0.01em !important;
-    background: #22c55e !important;
-    color: #000000 !important;
-    border: none !important;
+    background: transparent !important;
+    color: #76b900 !important;
+    border: 1.5px solid #76b900 !important;
     border-radius: 8px !important;
-    padding: 10px 20px !important;
+    padding: 10px 24px !important;
     transition: background 0.2s ease, transform 0.1s ease,
                 box-shadow 0.2s ease !important;
-    box-shadow: 0 0 0 0 rgba(34,197,94,0) !important;
+    text-transform: none !important;
 }
 .stButton > button:hover {
-    background: #16a34a !important;
-    box-shadow: 0 0 16px rgba(34,197,94,0.3) !important;
+    background: rgba(118,185,0,0.08) !important;
+    box-shadow: 0 0 16px rgba(118,185,0,0.25) !important;
     transform: translateY(-1px) !important;
 }
 .stButton > button:active {
     transform: translateY(0) !important;
-    background: #15803d !important;
+    background: rgba(118,185,0,0.15) !important;
 }
-
-/* Secondary button — outline style */
-.stButton > button[kind="secondary"] {
-    background: transparent !important;
-    color: #22c55e !important;
-    border: 1px solid #22c55e !important;
+.stButton > button[kind="primary"] {
+    background: #76b900 !important;
+    color: #000000 !important;
+    border: none !important;
 }
-.stButton > button[kind="secondary"]:hover {
-    background: rgba(34,197,94,0.08) !important;
+.stButton > button[kind="primary"]:hover {
+    background: #5a8c00 !important;
+    box-shadow: 0 0 16px rgba(118,185,0,0.3) !important;
 }
 
 /* ── Text inputs ──────────────────────────────────────────────── */
@@ -169,8 +155,8 @@ textarea {
 [data-testid="stTextInput"] input:focus,
 [data-testid="stNumberInput"] input:focus,
 textarea:focus {
-    border-color: #22c55e !important;
-    box-shadow: 0 0 0 3px rgba(34,197,94,0.1) !important;
+    border-color: #76b900 !important;
+    box-shadow: 0 0 0 3px rgba(118,185,0,0.12) !important;
     outline: none !important;
 }
 
@@ -210,7 +196,7 @@ textarea:focus {
     border-radius: 10px !important;
 }
 [data-testid="stExpander"]:hover {
-    border-color: #22c55e !important;
+    border-color: #76b900 !important;
 }
 [data-testid="stExpander"] summary {
     color: #ffffff !important;
@@ -220,18 +206,19 @@ textarea:focus {
 /* ── Dividers ─────────────────────────────────────────────────── */
 hr {
     border: none !important;
-    border-top: 1px solid #1a1a1a !important;
-    margin: 20px 0 !important;
+    border-top: 1px solid #76b900 !important;
+    opacity: 0.3 !important;
+    margin: 24px 0 !important;
 }
 
 /* ── Scrollbar ────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: #000000; }
 ::-webkit-scrollbar-thumb {
-    background: #22c55e;
+    background: #76b900;
     border-radius: 2px;
 }
-::-webkit-scrollbar-thumb:hover { background: #16a34a; }
+::-webkit-scrollbar-thumb:hover { background: #5a8c00; }
 
 /* ── Status / spinner ─────────────────────────────────────────── */
 [data-testid="stStatusWidget"] {
@@ -267,13 +254,14 @@ hr {
     padding: 10px 20px !important;
     border-bottom: 2px solid transparent !important;
     transition: color 0.15s ease !important;
+    text-transform: none !important;
 }
 [data-testid="stTabs"] [role="tab"]:hover {
     color: #ffffff !important;
 }
 [data-testid="stTabs"] [aria-selected="true"] {
-    color: #22c55e !important;
-    border-bottom: 2px solid #22c55e !important;
+    color: #76b900 !important;
+    border-bottom: 2px solid #76b900 !important;
     background: transparent !important;
 }
 </style>
@@ -307,7 +295,7 @@ if not st.session_state.get("uid"):
     st.markdown("### AI-powered stock research and daily portfolio brief")
     st.divider()
 
-    st.markdown("<h2 style='color:#22c55e;border-bottom:1px solid #1a1a1a;padding-bottom:8px;font-family:Inter,sans-serif'>Sign In</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='color:#76b900;border-bottom:1px solid rgba(118,185,0,0.2);padding-bottom:8px;font-family:Inter,sans-serif;letter-spacing:0.06em;text-transform:uppercase;font-size:14px'>Sign In</h2>", unsafe_allow_html=True)
     with st.form("login_form"):
         user_id      = st.text_input("User ID", placeholder="your-unique-id")
         display_name = st.text_input("Display Name", placeholder="Jane Smith")
@@ -335,14 +323,51 @@ uid          = st.session_state["uid"]
 display_name = st.session_state.get("display_name", "User")
 
 with st.sidebar:
-    st.markdown(f"**{display_name}**")
-    st.caption(st.session_state.get("email", ""))
-    st.divider()
-    st.page_link("pages/01_daily_brief.py",   label="Daily Brief")
-    st.page_link("pages/02_stock_research.py", label="Stock Research")
-    st.page_link("pages/03_portfolio.py",      label="Portfolio")
-    st.page_link("pages/04_watchlist.py",      label="Watchlist")
-    st.divider()
+    st.markdown(
+        "<div style='padding:20px 12px 8px'>"
+        "<span style='color:#76b900;font-size:20px;font-weight:700;"
+        "font-family:Inter,sans-serif;letter-spacing:-0.02em'>"
+        "MarketMind</span></div>",
+        unsafe_allow_html=True,
+    )
+
+    _nav = [
+        ("Home",           "/"),
+        ("Daily Brief",    "/daily_brief"),
+        ("Stock Research", "/stock_research"),
+        ("Portfolio",      "/portfolio"),
+        ("Watchlist",      "/watchlist"),
+    ]
+    _current = st.query_params.get("page", "/")
+    for _label, _path in _nav:
+        _active = (_path == "/" and _current == "/") or \
+                  (_path != "/" and _path in str(_current))
+        _style = (
+            "color:#76b900 !important;background:rgba(118,185,0,0.08);"
+            "border-left:2px solid #76b900;padding-left:10px;"
+        ) if _active else "color:#a1a1aa;"
+        st.markdown(
+            f"<a href='{_path}' style='display:block;padding:9px 12px;"
+            f"border-radius:6px;text-decoration:none;"
+            f"font-family:Inter,sans-serif;font-size:14px;"
+            f"font-weight:500;{_style}'>{_label}</a>",
+            unsafe_allow_html=True,
+        )
+
+    st.markdown(
+        "<div style='height:1px;background:#1a1a1a;margin:14px 8px'></div>",
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        f"<div style='padding:4px 12px 8px'>"
+        f"<span style='color:#ffffff;font-size:13px;font-weight:500;"
+        f"font-family:Inter,sans-serif'>{display_name}</span><br>"
+        f"<span style='color:#52525b;font-size:12px;"
+        f"font-family:Inter,sans-serif'>"
+        f"{st.session_state.get('email', '')}</span></div>",
+        unsafe_allow_html=True,
+    )
+    st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
     if st.button("Sign Out"):
         for key in ["uid", "display_name", "email"]:
             st.session_state.pop(key, None)

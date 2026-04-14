@@ -110,7 +110,7 @@ score        = float(summary_data.get("sentiment_score", 5.0))
 st.markdown(
     f"<p style='font-size:16px;line-height:1.9;color:#ffffff;"
     f"background:#0a0a0a;padding:20px;border-radius:10px;"
-    f"border-left:3px solid #22c55e;font-family:Inter,sans-serif'>"
+    f"border-left:3px solid #76b900;font-family:Inter,sans-serif'>"
     f"{summary_text}</p>",
     unsafe_allow_html=True,
 )
@@ -184,7 +184,7 @@ else:
         pub      = s.get("published_at", "")
         st.markdown(
             f"<div style='margin-bottom:6px'>"
-            f"<span style='font-size:11px;color:#22c55e;font-weight:600;"
+            f"<span style='font-size:11px;color:#76b900;font-weight:600;"
             f"font-family:Inter,sans-serif'>{ticker}</span> "
             f"<a href='{url}' style='color:#ffffff;font-size:13px;"
             f"font-family:Inter,sans-serif'>{headline}...</a> "
