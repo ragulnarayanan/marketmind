@@ -50,6 +50,23 @@ _MA_WORDS       = ["acquisition", "merger", "acquires", "buyout", "takeover", "d
 
 # ── Pure helper functions ─────────────────────────────────────────────────────
 
+BOILERPLATE_SIGNALS = [
+    "if you click 'accept all'",
+    "iab transparency",
+    "we and our partners",
+    "cookie policy",
+    "consent framework",
+    "store and / or access information on a device",
+]
+
+
+def _is_boilerplate(text: str) -> bool:
+    if not text:
+        return True
+    text_lower = text.lower()
+    return any(signal in text_lower for signal in BOILERPLATE_SIGNALS)
+
+
 def _compute_hash(title: str, source: str, published_date: str) -> str:
     """sha256(title + source + published_date)"""
     return hashlib.sha256(f"{title}{source}{published_date}".encode()).hexdigest()
@@ -66,16 +83,21 @@ def _scrape_full_text(url: str, timeout: int = 8) -> str | None:
         if not response.ok:
             return None
         text = trafilatura.extract(response.text)
-        return text or None
+        if not text or _is_boilerplate(text):
+            return None
+        return text
     except Exception:
         return None
 
 
 def _build_embed_text(title: str, description: str, full_text: str | None) -> str:
     """Combine title + description + full_text[:1000] for embedding."""
+    parts = [title]
+    if description and not _is_boilerplate(description):
+        parts.append(description)
     if full_text:
-        return f"{title} {description} {full_text[:1000]}"
-    return f"{title} {description}"
+        parts.append(full_text[:1000])
+    return " ".join(parts)
 
 
 def _basic_sentiment(title: str, description: str) -> tuple[str, float]:
