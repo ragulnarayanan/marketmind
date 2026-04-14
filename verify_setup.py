@@ -22,14 +22,14 @@ except Exception as e:
 # ── Qdrant ─────────────────────────────────────────────────────────────────────
 try:
     from qdrant_client import QdrantClient
-    q = QdrantClient(url=os.getenv("QDRANT_URL", "http://localhost:6333"))
+    q = QdrantClient(url=os.getenv("QDRANT_URL"), api_key=os.getenv("QDRANT_API_KEY") or None)
     collections = q.get_collections().collections
     print(f"OK  Qdrant — {len(collections)} collection(s)")
     if not collections:
         print("    Note: Run data.qdrant_client.init_collections() to create collections.")
 except Exception as e:
     print(f"FAIL Qdrant: {e}")
-    print("     Fix: docker run -p 6333:6333 qdrant/qdrant")
+    print("     Fix: check QDRANT_URL and QDRANT_API_KEY in .env")
 
 # ── OpenAI ─────────────────────────────────────────────────────────────────────
 try:

@@ -11,10 +11,10 @@ AI-powered stock research and daily portfolio brief app.
 ## Tech stack
 
 - **Frontend**: Streamlit
-- **LLMs**: OpenAI (`gpt-4o`, `gpt-4o-mini`) + Google (`gemini-1.5-pro`, `gemini-1.5-flash`)
+- **LLMs**: OpenAI (`gpt-4o`, `gpt-4o-mini`) + Google (`gemini-2.5-flash`)
 - **Orchestration**: LangChain
 - **User data**: Google Cloud Firestore
-- **Vector store**: Qdrant
+- **Vector store**: Qdrant Cloud
 - **News sources**: NewsAPI + Finnhub
 - **Financial data**: yfinance + SEC EDGAR
 
@@ -23,9 +23,8 @@ AI-powered stock research and daily portfolio brief app.
 ### 1. Prerequisites
 
 - Python 3.11+
-- Docker (for Qdrant)
 - GCP project with Firestore enabled (see spec for full GCP/Firebase setup)
-- API keys for OpenAI, Google AI, NewsAPI, Finnhub
+- API keys for OpenAI, Google AI, NewsAPI, Finnhub, Qdrant Cloud
 
 ### 2. Install dependencies
 
@@ -42,19 +41,13 @@ cp .env.example .env
 
 Place your `gcp-service-account.json` in the project root (never commit this file).
 
-### 4. Start Qdrant
-
-```bash
-docker run -p 6333:6333 qdrant/qdrant
-```
-
-### 5. Verify all connections
+### 4. Verify all connections
 
 ```bash
 python verify_setup.py
 ```
 
-### 6. Run the app
+### 5. Run the app
 
 ```bash
 streamlit run app.py
@@ -67,8 +60,8 @@ For local dev, add `TEST_UID=your-test-id` to `.env` to skip the login form.
 | Agent | Model | Role |
 |-------|-------|------|
 | News Agent | gpt-4o-mini | Sentiment + key events from NewsAPI/Finnhub |
-| SEC Agent | gemini-1.5-pro | RAG over 10-K/10-Q filing chunks (1M context) |
-| Financials Agent | gemini-1.5-flash | P/E, P/B, ROE, debt, volume spikes |
+| SEC Agent | gemini-2.5-flash | RAG over 10-K/10-Q filing chunks |
+| Financials Agent | gemini-2.5-flash | P/E, P/B, ROE, debt, volume spikes |
 | Synthesis Agent | gpt-4o-mini | 300-word unified research brief |
 | Verdict Agent | gpt-4o | Final Buy / Hold / Sell with confidence score |
 
