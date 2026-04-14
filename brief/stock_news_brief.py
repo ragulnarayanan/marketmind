@@ -171,12 +171,18 @@ async def summarize_stock_news_for_brief(
             reverse=True,
         )[:5]
 
+        top_headline = ""
+        if articles:
+            best = max(articles, key=lambda a: a.get("impact_score", 40))
+            top_headline = best.get("headline", "")
+
         return {
             "ticker":          ticker,
             "summary":         result.get("summary", ""),
             "sentiment_label": result.get("sentiment_label", "neutral"),
             "sentiment_score": float(result.get("sentiment_score", 5.0)),
             "article_count":   len(articles),
+            "top_headline":    top_headline,
             "sources":         sources,
             "generated_at":    datetime.now(timezone.utc).isoformat(),
         }

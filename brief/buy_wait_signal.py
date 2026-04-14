@@ -47,16 +47,45 @@ async def generate_signal(
             macro_summary=macro_summary,
         )
         messages = [{"role": "user", "content": prompt}]
-        response = await asyncio.to_thread(_llm.invoke, messages)
-        raw = response.content.strip()
-        result = json.loads(raw)
-        result["ticker"] = ticker
-        return result
+        try:
+            response = await asyncio.to_thread(_llm.invoke, messages)
+            raw = response.content.strip()
+            if not raw:
+                raise ValueError("Empty response")
+            result = json.loads(raw)
+            result["ticker"] = ticker
+            return result
+        except Exception:
+            # Retry with minimal prompt
+            try:
+                current_price = round(float(holding.get("current_price", 0)), 2)
+                avg_cost      = round(float(holding.get("avg_cost", 0)), 2)
+                retry_prompt  = (
+                    f'For stock {ticker} current price ${current_price} vs avg cost '
+                    f'${avg_cost}, respond with JSON only: '
+                    f'{{"signal": "WAIT", "reason": "Insufficient data", '
+                    f'"watch_price": null, "urgency": "LOW"}}'
+                )
+                response = await asyncio.to_thread(
+                    _llm.invoke, [{"role": "user", "content": retry_prompt}]
+                )
+                raw = response.content.strip()
+                result = json.loads(raw)
+                result["ticker"] = ticker
+                return result
+            except Exception:
+                return {
+                    "ticker":      ticker,
+                    "signal":      "WAIT",
+                    "reason":      "Signal generation unavailable — check back later.",
+                    "watch_price": None,
+                    "urgency":     "LOW",
+                }
     except Exception as e:
         return {
-            "ticker": ticker,
-            "signal": "WAIT",
-            "reason": f"Signal generation failed: {e}",
+            "ticker":      ticker,
+            "signal":      "WAIT",
+            "reason":      f"Signal generation failed: {e}",
             "watch_price": None,
-            "urgency": "LOW",
+            "urgency":     "LOW",
         }
