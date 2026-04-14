@@ -4,16 +4,16 @@ Model: gpt-4o-mini
 Retrieves news from Qdrant, auto-fetches if stale, summarizes via LLM.
 """
 import asyncio
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from urllib.parse import urlparse
 
 from langchain_openai import ChatOpenAI
+from qdrant_client.models import Direction, FieldCondition, Filter, MatchValue, OrderBy, Range
 
-from config import BRIEF_LOOKBACK_HOURS, GPT_FAST, OPENAI_API_KEY, TOP_K_VECTOR_RESULTS
+from config import GPT_FAST, OPENAI_API_KEY
 from data.news_fetcher import fetch_and_store_ticker_news
-from data.qdrant_client import search_news
+from data.qdrant_client import client
 from utils import parse_llm_json
-from utils.embeddings import embed_text
 
 _llm = ChatOpenAI(model=GPT_FAST, temperature=0.1, api_key=OPENAI_API_KEY)
 
@@ -84,38 +84,40 @@ def _extract_domain(url: str) -> str:
         return ""
 
 
+def _fetch_recent_articles(ticker: str) -> list[dict]:
+    results, _ = client.scroll(
+        "news_articles",
+        scroll_filter=Filter(must=[
+            FieldCondition(key="tickers", match=MatchValue(value=ticker)),
+        ]),
+        limit=50,
+        with_payload=True,
+        order_by=OrderBy(key="published_at", direction=Direction.DESC),
+    )
+    return [r.payload for r in results[:10]]
+
+
 async def summarize_stock_news_for_brief(
     ticker: str,
-    hours_back: int = 168,
+    hours_back: int = 168,   # kept for signature compatibility, no longer used for filtering
 ) -> dict:
     """
-    Retrieve news chunks for ticker from Qdrant (last hours_back hours).
-    If no news in Qdrant for today, trigger fetch_and_store_ticker_news first.
-    Aggregate all articles into one summary using GPT-4o-mini.
-    Return structured dict.
+    Retrieve the 10 most recent articles for ticker from Qdrant, ordered by
+    published_at descending. If none exist, fetch from APIs and retry once.
+    Summarize via GPT-4o-mini and return structured dict.
     """
     try:
-        from_unix = int(
-            (datetime.now(timezone.utc) - timedelta(hours=hours_back)).timestamp()
-        )
-        query_vec = await asyncio.to_thread(
-            embed_text, f"latest news {ticker} stock price earnings"
-        )
-        articles = await asyncio.to_thread(
-            search_news, query_vec, [ticker], None, from_unix, TOP_K_VECTOR_RESULTS
-        )
+        articles = await asyncio.to_thread(_fetch_recent_articles, ticker)
 
-        # Auto-fetch if nothing found in Qdrant for this window
+        # Auto-fetch if nothing found in Qdrant
         if not articles:
             await fetch_and_store_ticker_news(ticker)
-            articles = await asyncio.to_thread(
-                search_news, query_vec, [ticker], None, from_unix, TOP_K_VECTOR_RESULTS
-            )
+            articles = await asyncio.to_thread(_fetch_recent_articles, ticker)
 
         if not articles:
             return {
                 "ticker":          ticker,
-                "summary":         "No news available for this ticker in the last 24 hours.",
+                "summary":         "No news available for this ticker.",
                 "sentiment_label": "neutral",
                 "sentiment_score": 5.0,
                 "article_count":   0,
@@ -126,28 +128,20 @@ async def summarize_stock_news_for_brief(
         formatted = _format_articles_for_prompt(articles)
         messages = [
             {"role": "system", "content": _SYSTEM.format(ticker=ticker)},
-            {
-                "role": "user",
-                "content": (
-                    f"Articles about {ticker} (last {hours_back} hours):\n{formatted}"
-                ),
-            },
+            {"role": "user", "content": f"Articles about {ticker}:\n{formatted}"},
         ]
         response = await asyncio.to_thread(_llm.invoke, messages)
         result   = parse_llm_json(response.content.strip())
 
-        # Scroll ALL articles and filter in Python (no bool index needed)
-        from data.qdrant_client import client
-        from qdrant_client.models import Filter, FieldCondition, MatchValue, Range
-
+        # Sources: scroll top-50 by recency, filter valid URLs in Python
         all_results, _ = client.scroll(
             "news_articles",
             scroll_filter=Filter(must=[
-                FieldCondition(key="tickers",      match=MatchValue(value=ticker)),
-                FieldCondition(key="published_at", range=Range(gte=from_unix)),
+                FieldCondition(key="tickers", match=MatchValue(value=ticker)),
             ]),
-            limit=100,
+            limit=50,
             with_payload=True,
+            order_by=OrderBy(key="published_at", direction=Direction.DESC),
         )
 
         sources = []
