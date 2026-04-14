@@ -6,6 +6,7 @@ from qdrant_client.models import (
     Filter,
     MatchAny,
     MatchValue,
+    PayloadSchemaType,
     PointStruct,
     Range,
     VectorParams,
@@ -32,6 +33,7 @@ def init_collections() -> None:
     _safe_create_index("news_articles", "tickers", "keyword")
     _safe_create_index("news_articles", "published_date", "keyword")
     _safe_create_index("news_articles", "content_hash", "keyword")
+    _safe_create_index("news_articles", "has_url", PayloadSchemaType.BOOL)
     _safe_create_index("sec_filings", "ticker", "keyword")
     _safe_create_index("sec_filings", "filing_type", "keyword")
 
