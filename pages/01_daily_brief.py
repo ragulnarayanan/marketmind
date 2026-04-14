@@ -69,32 +69,33 @@ for ticker, news in stock_news.items():
     sentiment = news.get("sentiment", "neutral")
     sentiment_color = {"bullish": "green", "bearish": "red", "neutral": "orange"}.get(sentiment, "orange")
     sentiment_label = {"bullish": "Bullish", "bearish": "Bearish", "neutral": "Neutral"}.get(sentiment, "Neutral")
-    with st.expander(f"{ticker} — {news.get('top_headline', 'No headline')}"):
-        st.markdown(f":{sentiment_color}[**{sentiment_label}**]")
-        summary_text = news.get("summary", "")
-        st.markdown(
-            f"<p style='font-size:15px; line-height:1.7;'>{summary_text}</p>",
-            unsafe_allow_html=True,
-        )
-        score = news.get("score", 5.0)
-        st.progress(min(int(score * 10), 100), text=f"Sentiment score: {score:.1f}/10")
-        sources = news.get("sources", [])
-        if sources:
-            st.markdown("**Sources:**")
-            for s in sources:
-                url         = s.get("url", "")
-                headline    = s.get("headline", "")
-                source_name = s.get("source_name", "")
-                domain      = s.get("domain", source_name)
-                published   = s.get("published_at", "")
-                if url and headline:
-                    st.markdown(
-                        f"→ [{headline[:70]}...]({url})  "
-                        f"<span style='color:gray;font-size:12px'>{domain} · {published}</span>",
-                        unsafe_allow_html=True,
-                    )
-        else:
-            st.caption("No source links available for this ticker.")
+    st.markdown(f"**{ticker}** — {news.get('top_headline', 'No headline')}")
+    st.markdown(f":{sentiment_color}[**{sentiment_label}**]")
+    summary_text = news.get("summary", "")
+    st.markdown(
+        f"<p style='font-size:15px; line-height:1.7;'>{summary_text}</p>",
+        unsafe_allow_html=True,
+    )
+    score = news.get("score", 5.0)
+    st.progress(min(int(score * 10), 100), text=f"Sentiment score: {score:.1f}/10")
+    sources = news.get("sources", [])
+    if sources:
+        st.markdown("**Sources:**")
+        for s in sources:
+            url         = s.get("url", "")
+            headline    = s.get("headline", "")
+            source_name = s.get("source_name", "")
+            domain      = s.get("domain", source_name)
+            published   = s.get("published_at", "")
+            if url and headline:
+                st.markdown(
+                    f"→ [{headline[:70]}...]({url})  "
+                    f"<span style='color:gray;font-size:12px'>{domain} · {published}</span>",
+                    unsafe_allow_html=True,
+                )
+    else:
+        st.caption("No source links available for this ticker.")
+    st.markdown("---")
 
 # ── Macro Alerts ──────────────────────────────────────────────────────────────
 macro = brief.get("macro_alerts", [])
