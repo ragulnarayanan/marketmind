@@ -12,120 +12,91 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# ── Global dark theme + nav consistency ──────────────────────────────────────
+# ── Global theme CSS (NVIDIA green on black) ──────────────────────────────────
 st.markdown("""
 <style>
-/* ── Base background ── */
-.stApp, .main, section[data-testid="stSidebar"] {
-    background-color: #0a0a0a !important;
-}
+/* Base */
+.stApp, .main { background-color: #000000 !important; }
+section[data-testid="stSidebar"] { background-color: #0f0f0f !important; }
 
-/* ── Text ── */
-body, p, span, div, label {
-    color: #e0e0e0 !important;
-}
+/* Headings */
+h1, h2, h3, h4, h5, h6 { color: #76b900 !important; }
 
-h1, h2, h3 { color: #00d4ff !important; }
-h4, h5, h6 { color: #7ee8a2 !important; }
+/* Body text */
+p, span, div, label, li { color: #e0e0e0; }
 
-/* ── Metric cards ── */
+/* Metric cards */
 [data-testid="stMetric"] {
-    background: #111827 !important;
-    border: 0.5px solid #1f2937 !important;
-    border-radius: 10px !important;
+    background: #0f0f0f !important;
+    border: 0.5px solid #76b900 !important;
+    border-radius: 8px !important;
     padding: 12px !important;
 }
-[data-testid="stMetricValue"]  { color: #00d4ff !important; font-size: 22px !important; }
-[data-testid="stMetricLabel"]  { color: #9ca3af !important; }
-[data-testid="stMetricDelta"]  { font-size: 14px !important; }
-
-/* ── Positive / negative deltas ── */
-[data-testid="stMetricDelta"][data-direction="up"]   { color: #10b981 !important; }
+[data-testid="stMetricValue"] { color: #76b900 !important; }
+[data-testid="stMetricLabel"] { color: #9ca3af !important; }
+[data-testid="stMetricDelta"][data-direction="up"]   { color: #76b900 !important; }
 [data-testid="stMetricDelta"][data-direction="down"]  { color: #ef4444 !important; }
 
-/* ── Cards / containers ── */
-[data-testid="stVerticalBlock"] > div {
-    background: #111827;
-    border-radius: 10px;
-}
-
-/* ── Buttons ── */
+/* Buttons */
 .stButton > button {
-    background: #1d4ed8 !important;
-    color: #ffffff !important;
+    background: #76b900 !important;
+    color: #000000 !important;
     border: none !important;
-    border-radius: 8px !important;
-    font-weight: 500 !important;
+    border-radius: 6px !important;
+    font-weight: 600 !important;
 }
-.stButton > button:hover {
-    background: #2563eb !important;
-}
+.stButton > button:hover { background: #8fd400 !important; }
 
-/* ── Inputs ── */
-input, textarea, select,
+/* Inputs */
+input, textarea,
 [data-testid="stTextInput"] input,
 [data-testid="stNumberInput"] input {
-    background: #1f2937 !important;
+    background: #0f0f0f !important;
     color: #e0e0e0 !important;
-    border: 0.5px solid #374151 !important;
-    border-radius: 8px !important;
+    border: 0.5px solid #76b900 !important;
+    border-radius: 6px !important;
 }
 
-/* ── Selectbox / dropdowns ── */
-[data-testid="stSelectbox"] > div {
-    background: #1f2937 !important;
-    border-color: #374151 !important;
-}
-
-/* ── Sidebar nav links ── */
-[data-testid="stSidebarNav']{display:none!important}
-[data-testid="stSidebarNav"] a {
+/* Sidebar nav links — same on every page */
+[data-testid="stSidebarNav"] a,
+[data-testid="stSidebarNav"] span {
     color: #e0e0e0 !important;
     font-size: 15px !important;
     font-weight: 500 !important;
-    padding: 6px 12px !important;
 }
 [data-testid="stSidebarNav"] a:hover {
-    color: #00d4ff !important;
-    background: #1f2937 !important;
+    color: #76b900 !important;
+    background: #1a1a1a !important;
     border-radius: 6px !important;
 }
-[data-testid="stSidebarNav"] a[aria-selected="true"] {
-    color: #00d4ff !important;
-    background: #1e3a5f !important;
+[data-testid="stSidebarNav"] a[aria-selected="true"],
+[data-testid="stSidebarNav"] a[aria-current="page"] {
+    color: #76b900 !important;
+    background: #1a2800 !important;
     border-radius: 6px !important;
-}
-section[data-testid="stSidebarNav"] span {
-    font-size: 15px !important;
-    font-weight: 500 !important;
+    font-weight: 600 !important;
 }
 
-/* ── Dividers ── */
-hr { border-color: #1f2937 !important; }
+/* Dividers */
+hr { border-color: #1a1a1a !important; }
 
-/* ── Badges / status ── */
-.stBadge { border-radius: 20px !important; font-weight: 500 !important; }
-
-/* ── DataFrames / tables ── */
-[data-testid="stDataFrame"] {
-    background: #111827 !important;
-    border: 0.5px solid #1f2937 !important;
-}
-
-/* ── Expanders ── */
+/* Expanders */
 [data-testid="stExpander"] {
-    background: #111827 !important;
-    border: 0.5px solid #1f2937 !important;
+    background: #0f0f0f !important;
+    border: 0.5px solid #1a1a1a !important;
     border-radius: 8px !important;
 }
 
-/* ── Status boxes ── */
-[data-testid="stStatusWidget"] { background: #111827 !important; }
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: #000000; }
+::-webkit-scrollbar-thumb { background: #76b900; border-radius: 2px; }
 
-/* ── Scrollbar ── */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: #0a0a0a; }
-::-webkit-scrollbar-thumb { background: #374151; border-radius: 3px; }
+/* DataFrames */
+[data-testid="stDataFrame"] {
+    background: #0f0f0f !important;
+    border: 0.5px solid #1a1a1a !important;
+}
 </style>
 """, unsafe_allow_html=True)
 

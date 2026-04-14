@@ -90,7 +90,7 @@ if portfolio:
 
     holdings_display = snapshot.get("holdings", [])
     if holdings_display:
-        st.subheader("Holdings")
+        st.markdown("<h2 style='color:#76b900;border-bottom:1px solid #1a1a1a;padding-bottom:8px'>Holdings</h2>", unsafe_allow_html=True)
         header_cols = st.columns([2, 1, 1, 1, 1, 1, 1])
         for col, label in zip(
             header_cols,
@@ -124,7 +124,7 @@ else:
 
 # ── Add / Update Holding ──────────────────────────────────────────────────────
 st.markdown("---")
-st.subheader("Add / Update Holding")
+st.markdown("<h2 style='color:#76b900;border-bottom:1px solid #1a1a1a;padding-bottom:8px'>Add / Update Holding</h2>", unsafe_allow_html=True)
 
 sel_idx = st.selectbox(
     "Select stock",

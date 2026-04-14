@@ -121,7 +121,7 @@ if not watchlist:
     st.stop()
 
 st.markdown("---")
-st.subheader("Watching")
+st.markdown("<h2 style='color:#76b900;border-bottom:1px solid #1a1a1a;padding-bottom:8px'>Watching</h2>", unsafe_allow_html=True)
 
 header = st.columns([2, 1, 1, 1, 2])
 for col, label in zip(header, ["Ticker", "Price", "Daily %", "Volume", "Actions"]):
