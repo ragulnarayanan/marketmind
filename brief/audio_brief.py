@@ -9,6 +9,97 @@ from config import OPENAI_API_KEY
 
 client = OpenAI(api_key=OPENAI_API_KEY)
 
+# Spoken name for common tickers — used in audio so TTS says "Apple" not "AAPL"
+_SPOKEN_NAMES: dict[str, str] = {
+    "AAPL":  "Apple",
+    "MSFT":  "Microsoft",
+    "NVDA":  "NVIDIA",
+    "GOOGL": "Alphabet",
+    "GOOG":  "Alphabet",
+    "AMZN":  "Amazon",
+    "META":  "Meta",
+    "TSLA":  "Tesla",
+    "AVGO":  "Broadcom",
+    "TSM":   "Taiwan Semiconductor",
+    "LLY":   "Eli Lilly",
+    "V":     "Visa",
+    "JPM":   "JPMorgan",
+    "WMT":   "Walmart",
+    "MA":    "Mastercard",
+    "XOM":   "Exxon Mobil",
+    "COST":  "Costco",
+    "HD":    "Home Depot",
+    "JNJ":   "Johnson and Johnson",
+    "NFLX":  "Netflix",
+    "PG":    "Procter and Gamble",
+    "ORCL":  "Oracle",
+    "BAC":   "Bank of America",
+    "ABBV":  "AbbVie",
+    "AMD":   "A M D",
+    "CRM":   "Salesforce",
+    "KO":    "Coca-Cola",
+    "CVX":   "Chevron",
+    "MRK":   "Merck",
+    "PEP":   "PepsiCo",
+    "ADBE":  "Adobe",
+    "ACN":   "Accenture",
+    "WFC":   "Wells Fargo",
+    "UNH":   "UnitedHealth",
+    "IBM":   "I B M",
+    "QCOM":  "Qualcomm",
+    "NOW":   "ServiceNow",
+    "TXN":   "Texas Instruments",
+    "PM":    "Philip Morris",
+    "INTU":  "Intuit",
+    "AMGN":  "Amgen",
+    "CSCO":  "Cisco",
+    "CAT":   "Caterpillar",
+    "DIS":   "Disney",
+    "GS":    "Goldman Sachs",
+    "NEE":   "NextEra Energy",
+    "ISRG":  "Intuitive Surgical",
+    "BKNG":  "Booking Holdings",
+    "AMAT":  "Applied Materials",
+    "SPGI":  "S&P Global",
+    "T":     "A T and T",
+    "INTC":  "Intel",
+    "MU":    "Micron",
+    "UBER":  "Uber",
+    "LYFT":  "Lyft",
+    "SNAP":  "Snap",
+    "SPOT":  "Spotify",
+    "PYPL":  "PayPal",
+    "SQ":    "Block",
+    "SHOP":  "Shopify",
+    "COIN":  "Coinbase",
+    "PLTR":  "Palantir",
+    "RIVN":  "Rivian",
+    "F":     "Ford",
+    "GM":    "General Motors",
+    "BA":    "Boeing",
+    "LMT":   "Lockheed Martin",
+    "RTX":   "Raytheon",
+    "UPS":   "U P S",
+    "FDX":   "FedEx",
+    "MCD":   "McDonald's",
+    "SBUX":  "Starbucks",
+    "NKE":   "Nike",
+    "TGT":   "Target",
+    "AMGN":  "Amgen",
+    "PFE":   "Pfizer",
+    "MRNA":  "Moderna",
+    "BIIB":  "Biogen",
+    "GILD":  "Gilead",
+    "BMY":   "Bristol Myers Squibb",
+    "CVS":   "C V S",
+    "WBA":   "Walgreens",
+}
+
+
+def _spoken(ticker: str) -> str:
+    """Return the natural spoken name for a ticker, falling back to the ticker itself."""
+    return _SPOKEN_NAMES.get(ticker.upper(), ticker)
+
 
 def write_audio_script(brief: dict) -> str:
     """
@@ -53,11 +144,12 @@ def write_audio_script(brief: dict) -> str:
         mover_parts = []
         for h in sorted_h:
             ticker = h.get("ticker", "")
+            name   = _spoken(ticker)
             pct    = h.get("daily_pct", 0)
             move   = "up" if pct >= 0 else "down"
             signal = signals.get(ticker, {}).get("signal", "WAIT")
             mover_parts.append(
-                f"{ticker} is {move} {abs(pct):.1f}%, "
+                f"{name} is {move} {abs(pct):.1f}%, "
                 f"current signal is {signal.lower()}"
             )
         script += ". ".join(mover_parts) + ".\n\n"
