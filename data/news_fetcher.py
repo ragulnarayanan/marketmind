@@ -60,6 +60,23 @@ BOILERPLATE_SIGNALS = [
 ]
 
 
+_BAD_URL_PATTERNS = [
+    "consent.yahoo.com",
+    "consent.",
+    "login.",
+    "signin.",
+    "subscribe.",
+    "paywall.",
+    "javascript:",
+]
+
+
+def _is_valid_url(url: str) -> bool:
+    if not url:
+        return False
+    return not any(p in url.lower() for p in _BAD_URL_PATTERNS)
+
+
 def _is_boilerplate(text: str) -> bool:
     if not text:
         return True
@@ -236,13 +253,14 @@ async def fetch_and_store_ticker_news(
             if pub < cutoff:
                 continue
             description = a.get("description") or a.get("content") or ""
-            full_text = await asyncio.to_thread(_scrape_full_text, url)
+            valid = _is_valid_url(url)
+            full_text = await asyncio.to_thread(_scrape_full_text, url) if valid else None
             raw.append(_build_payload(
                 title=title,
                 description=description,
                 full_text=full_text,
-                url=url,
-                has_url=True,
+                url=url if valid else None,
+                has_url=valid,
                 source_name=(a.get("source") or {}).get("name", "NewsAPI"),
                 tickers=[ticker],
                 sectors=[sector],
@@ -318,13 +336,14 @@ async def fetch_macro_news() -> list[dict]:
                 except Exception:
                     pub = datetime.now(timezone.utc)
                 description = a.get("description") or ""
-                full_text = await asyncio.to_thread(_scrape_full_text, url)
+                valid = _is_valid_url(url)
+                full_text = await asyncio.to_thread(_scrape_full_text, url) if valid else None
                 raw.append(_build_payload(
                     title=title,
                     description=description,
                     full_text=full_text,
-                    url=url,
-                    has_url=True,
+                    url=url if valid else None,
+                    has_url=valid,
                     source_name=(a.get("source") or {}).get("name", "NewsAPI"),
                     tickers=[],
                     sectors=["macro"],

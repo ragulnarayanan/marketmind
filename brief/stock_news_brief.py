@@ -61,6 +61,21 @@ def _format_articles_for_prompt(articles: list[dict]) -> str:
     return "\n\n".join(parts)
 
 
+def _is_valid_url(url: str) -> bool:
+    if not url:
+        return False
+    bad_patterns = [
+        "consent.yahoo.com",
+        "consent.",
+        "login.",
+        "signin.",
+        "subscribe.",
+        "paywall.",
+        "javascript:",
+    ]
+    return not any(p in url.lower() for p in bad_patterns)
+
+
 def _extract_domain(url: str) -> str:
     try:
         netloc = urlparse(url).netloc
@@ -122,7 +137,7 @@ async def summarize_stock_news_for_brief(
         result   = parse_llm_json(response.content.strip())
 
         # Build top-5 sources — only articles with real URLs (NewsAPI), sorted by impact_score
-        url_articles = [a for a in articles if a.get("has_url") and a.get("url")]
+        url_articles = [a for a in articles if a.get("has_url") and _is_valid_url(a.get("url", ""))]
         top_articles = sorted(
             url_articles, key=lambda a: a.get("impact_score", 40), reverse=True
         )[:5]
