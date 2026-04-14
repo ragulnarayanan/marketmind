@@ -136,27 +136,41 @@ async def summarize_stock_news_for_brief(
         response = await asyncio.to_thread(_llm.invoke, messages)
         result   = parse_llm_json(response.content.strip())
 
-        # Build top-5 sources — only articles with real URLs (NewsAPI), sorted by impact_score
-        url_articles = [a for a in articles if a.get("has_url") and _is_valid_url(a.get("url", ""))]
-        top_articles = sorted(
-            url_articles, key=lambda a: a.get("impact_score", 40), reverse=True
-        )[:5]
+        # Fetch sources separately — scroll for articles with valid URLs
+        from data.qdrant_client import client
+        from qdrant_client.models import Filter, FieldCondition, MatchValue, Range
+
+        sources_results, _ = client.scroll(
+            "news_articles",
+            scroll_filter=Filter(must=[
+                FieldCondition(key="tickers",      match=MatchValue(value=ticker)),
+                FieldCondition(key="has_url",      match=MatchValue(value=True)),
+                FieldCondition(key="published_at", range=Range(gte=from_unix)),
+            ]),
+            limit=10,
+            with_payload=True,
+        )
+
         sources = []
-        for a in top_articles:
-            url    = a.get("url", "")
-            pub_ts = a.get("published_at")
-            pub_str = (
-                datetime.fromtimestamp(pub_ts, tz=timezone.utc).strftime("%Y-%m-%d %H:%M")
-                if pub_ts else ""
-            )
+        for r in sources_results:
+            p   = r.payload
+            url = p.get("url", "")
+            if not url or not _is_valid_url(url):
+                continue
             sources.append({
-                "headline":    a.get("headline", ""),
+                "headline":    p.get("headline", ""),
                 "url":         url,
-                "source_name": a.get("source_name", ""),
+                "source_name": p.get("source_name", ""),
                 "domain":      _extract_domain(url),
-                "published_at": pub_str,
-                "sentiment":   a.get("sentiment_label", "neutral"),
+                "published_at": p.get("published_date", ""),
+                "sentiment":   p.get("sentiment_label", "neutral"),
             })
+
+        sources = sorted(
+            sources,
+            key=lambda x: x.get("impact_score", 40),
+            reverse=True,
+        )[:5]
 
         return {
             "ticker":          ticker,
