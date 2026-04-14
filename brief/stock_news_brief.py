@@ -136,26 +136,25 @@ async def summarize_stock_news_for_brief(
         response = await asyncio.to_thread(_llm.invoke, messages)
         result   = parse_llm_json(response.content.strip())
 
-        # Fetch sources separately — scroll for articles with valid URLs
+        # Scroll ALL articles and filter in Python (no bool index needed)
         from data.qdrant_client import client
         from qdrant_client.models import Filter, FieldCondition, MatchValue, Range
 
-        sources_results, _ = client.scroll(
+        all_results, _ = client.scroll(
             "news_articles",
             scroll_filter=Filter(must=[
                 FieldCondition(key="tickers",      match=MatchValue(value=ticker)),
-                FieldCondition(key="has_url",      match=MatchValue(value=True)),
                 FieldCondition(key="published_at", range=Range(gte=from_unix)),
             ]),
-            limit=10,
+            limit=100,
             with_payload=True,
         )
 
         sources = []
-        for r in sources_results:
+        for r in all_results:
             p   = r.payload
-            url = p.get("url", "")
-            if not url or not _is_valid_url(url):
+            url = p.get("url") or ""
+            if not p.get("has_url") or not _is_valid_url(url):
                 continue
             sources.append({
                 "headline":    p.get("headline", ""),
