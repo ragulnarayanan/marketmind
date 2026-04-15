@@ -89,27 +89,41 @@ async def generate_daily_brief(uid: str) -> dict:
         ]),
     )
 
-    # Collect all source links with valid URLs, deduplicated
+    # Collect source links — separate wider scroll per ticker (top 50),
+    # filtered in Python for has_url=True. This avoids missing URLs when
+    # the top-10 summary articles happen to all be Finnhub (no URL).
     all_sources = []
-    for ticker, articles in news_by_ticker.items():
-        for a in articles:
-            url = a.get("url")
-            if a.get("has_url") and url and _is_valid_url(url):
-                all_sources.append({
-                    "headline":    a.get("headline", ""),
-                    "url":         url,
-                    "source_name": a.get("source_name", ""),
-                    "domain":      _extract_domain(url),
-                    "published_at": a.get("published_date", ""),
-                    "ticker":      ticker,
-                })
+    for ticker in tickers:
+        source_results, _ = client.scroll(
+            "news_articles",
+            scroll_filter=Filter(must=[
+                FieldCondition(key="tickers", match=MatchValue(value=ticker)),
+            ]),
+            limit=50,
+            with_payload=True,
+            order_by=OrderBy(key="published_at", direction=Direction.DESC),
+        )
+        for r in source_results:
+            a   = r.payload
+            url = a.get("url") or ""
+            if not a.get("has_url") or not url or not _is_valid_url(url):
+                continue
+            all_sources.append({
+                "headline":    a.get("headline", ""),
+                "url":         url,
+                "source_name": a.get("source_name", ""),
+                "domain":      _extract_domain(url),
+                "published_at": a.get("published_date", ""),
+                "ticker":      ticker,
+            })
+
     seen_urls: set[str] = set()
     unique_sources = []
     for s in all_sources:
         if s["url"] not in seen_urls:
             seen_urls.add(s["url"])
             unique_sources.append(s)
-    unique_sources = unique_sources[:10]
+    unique_sources = unique_sources[:15]
 
     signals = {s["ticker"]: s for s in signals_list}
 
