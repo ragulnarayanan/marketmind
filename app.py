@@ -36,6 +36,20 @@ st.markdown("""
     pointer-events: none !important;
 }
 
+/* ── Hide sidebar collapse/expand button (shows keyboard_double_arrow text) ─ */
+[data-testid="collapsedControl"],
+button[data-testid="baseButton-headerNoPadding"],
+[data-testid="stSidebarCollapseButton"],
+.st-emotion-cache-1egp75f,
+section[data-testid="stSidebar"] > div:first-child button {
+    display: none !important;
+}
+/* Hide any raw Material Icon text that leaks through */
+span[class*="icon"]:not([data-testid]),
+[data-testid="stPageLink"] span[class*="material"] {
+    display: none !important;
+}
+
 /* ── st.page_link styling ─────────────────────────────────────────── */
 [data-testid="stPageLink"] {
     padding: 0 !important;
