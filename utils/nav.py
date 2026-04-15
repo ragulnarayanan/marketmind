@@ -5,8 +5,64 @@ Uses st.page_link() so Streamlit preserves session state across pages.
 import streamlit as st
 
 
+_NAV_CSS = """
+<style>
+/* ── Hide Streamlit auto-nav ─────────────────────────────────────── */
+[data-testid="stSidebarNav"],
+[data-testid="stSidebarNav"] * {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+}
+
+/* ── Buttons — solid green, black text ──────────────────────────── */
+.stButton > button,
+button[data-testid="stBaseButton-primary"],
+button[data-testid="stBaseButton-secondary"],
+button[data-testid="stBaseButton-tertiary"],
+[data-testid="stForm"] button,
+.stButton button {
+    font-family: 'Inter', sans-serif !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.01em !important;
+    background: #76b900 !important;
+    color: #000000 !important;
+    border: none !important;
+    border-radius: 8px !important;
+    padding: 10px 24px !important;
+    transition: background 0.2s ease, transform 0.1s ease,
+                box-shadow 0.2s ease !important;
+    text-transform: none !important;
+}
+.stButton > button *,
+button[data-testid="stBaseButton-primary"] *,
+button[data-testid="stBaseButton-secondary"] *,
+button[data-testid="stBaseButton-tertiary"] *,
+.stButton button * {
+    color: #000000 !important;
+}
+.stButton > button:hover,
+button[data-testid="stBaseButton-primary"]:hover,
+button[data-testid="stBaseButton-secondary"]:hover,
+button[data-testid="stBaseButton-tertiary"]:hover {
+    background: #8fd400 !important;
+    box-shadow: 0 0 16px rgba(118,185,0,0.3) !important;
+    transform: translateY(-1px) !important;
+}
+.stButton > button:active,
+button[data-testid="stBaseButton-primary"]:active,
+button[data-testid="stBaseButton-secondary"]:active {
+    transform: translateY(0) !important;
+    background: #5a8c00 !important;
+}
+</style>
+"""
+
+
 def render_nav() -> None:
     """Render the MarketMind sidebar nav. Call this at the top of every page."""
+    st.markdown(_NAV_CSS, unsafe_allow_html=True)
     with st.sidebar:
         st.markdown(
             "<div style='padding:20px 12px 8px'>"
@@ -20,7 +76,6 @@ def render_nav() -> None:
         st.page_link("pages/01_daily_brief.py",     label="Daily Brief")
         st.page_link("pages/02_stock_research.py",  label="Stock Research")
         st.page_link("pages/03_portfolio.py",        label="Portfolio")
-        st.page_link("pages/04_watchlist.py",        label="Watchlist")
 
         st.markdown(
             "<div style='height:1px;background:#1a1a1a;margin:14px 8px'></div>",

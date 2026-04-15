@@ -14,7 +14,6 @@ from brief.portfolio_pnl import compute_portfolio_snapshot
 from data.firestore_client import (
     get_portfolio,
     get_todays_brief,
-    get_watchlist,
     store_brief,
 )
 from data.news_fetcher import fetch_and_store_ticker_news, fetch_macro_news
@@ -45,7 +44,6 @@ async def generate_daily_brief(uid: str) -> dict:
         return cached
 
     portfolio = get_portfolio(uid)
-    watchlist = get_watchlist(uid)
 
     if not portfolio:
         return {

@@ -155,40 +155,48 @@ p, span, div, label, li {
     font-weight: 500 !important;
 }
 [data-testid="stMetricDelta"][data-direction="up"]   { color: #76b900 !important; }
-[data-testid="stMetricDelta"][data-direction="down"]  { color: #ef4444 !important; }
+[data-testid="stMetricDelta"][data-direction="down"]  { color: #a1a1aa !important; }
 
 /* ── Buttons ──────────────────────────────────────────────────── */
-.stButton > button {
+.stButton > button,
+button[data-testid="stBaseButton-primary"],
+button[data-testid="stBaseButton-secondary"],
+button[data-testid="stBaseButton-tertiary"],
+[data-testid="stForm"] button,
+.stButton button {
     font-family: 'Inter', sans-serif !important;
     font-size: 14px !important;
     font-weight: 600 !important;
     letter-spacing: 0.01em !important;
-    background: transparent !important;
-    color: #76b900 !important;
-    border: 1.5px solid #76b900 !important;
+    background: #76b900 !important;
+    color: #000000 !important;
+    border: none !important;
     border-radius: 8px !important;
     padding: 10px 24px !important;
     transition: background 0.2s ease, transform 0.1s ease,
                 box-shadow 0.2s ease !important;
     text-transform: none !important;
 }
-.stButton > button:hover {
-    background: rgba(118,185,0,0.08) !important;
-    box-shadow: 0 0 16px rgba(118,185,0,0.25) !important;
+.stButton > button *,
+button[data-testid="stBaseButton-primary"] *,
+button[data-testid="stBaseButton-secondary"] *,
+button[data-testid="stBaseButton-tertiary"] *,
+.stButton button * {
+    color: #000000 !important;
+}
+.stButton > button:hover,
+button[data-testid="stBaseButton-primary"]:hover,
+button[data-testid="stBaseButton-secondary"]:hover,
+button[data-testid="stBaseButton-tertiary"]:hover {
+    background: #8fd400 !important;
+    box-shadow: 0 0 16px rgba(118,185,0,0.3) !important;
     transform: translateY(-1px) !important;
 }
-.stButton > button:active {
+.stButton > button:active,
+button[data-testid="stBaseButton-primary"]:active,
+button[data-testid="stBaseButton-secondary"]:active {
     transform: translateY(0) !important;
-    background: rgba(118,185,0,0.15) !important;
-}
-.stButton > button[kind="primary"] {
-    background: #76b900 !important;
-    color: #000000 !important;
-    border: none !important;
-}
-.stButton > button[kind="primary"]:hover {
     background: #5a8c00 !important;
-    box-shadow: 0 0 16px rgba(118,185,0,0.3) !important;
 }
 
 /* ── Text inputs ──────────────────────────────────────────────── */

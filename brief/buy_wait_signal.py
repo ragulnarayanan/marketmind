@@ -50,14 +50,15 @@ async def generate_signal(
 User average cost: ${avg_cost:.2f}
 Current price: ${current_price:.2f} ({daily_pct:+.1f}% today, {total_pnl_pct:+.1f}% from cost basis)
 News sentiment: {news_sentiment}
-News summary: {news_text[:300] if news_text else 'No news available'}
+News summary: {news_text[:1500] if news_text else 'No news available'}
 Macro context: {macro_text[:200] if macro_text else 'No macro context'}
 
 You are a sharp equity analyst on a financial podcast. Give a BUY / WAIT / SELL call on {ticker}.
 
 Write a reason that sounds like a crisp analyst take — not a generic disclaimer. \
-Two sentences max. Be direct: name the catalyst or risk, reference the price level if relevant, \
-and tell the investor exactly what to watch. Examples of the right voice:
+3 sentences: first sentence names the key catalyst or risk, second gives context \
+(price level, setup, or what the market is pricing in), third tells the investor \
+exactly what to watch or do next. Examples of the right voice:
 - "NVDA cleared key resistance at $900 on AI infrastructure demand; the risk/reward favors \
   adding here with $865 as your stop."
 - "AAPL is digesting iPhone demand concerns — hold the position but don't add until \

@@ -2,7 +2,7 @@
 Reusable UI component helpers for MarketMind.
 All color values follow the design system — no hardcoded colors in page files.
 
-Primary green:  #76b900  (NVIDIA green — buttons, links, active states, BUY)
+Primary green:  #76b900  (buttons, links, active states, BUY)
 Market down:    #ef4444  (losses, SELL)
 Market neutral: #a1a1aa  (labels, captions, WAIT)
 """
@@ -22,8 +22,8 @@ def green_badge(text: str) -> str:
 
 def red_badge(text: str) -> str:
     return (
-        f"<span style='background:rgba(239,68,68,0.1);"
-        f"color:#ef4444;border:1px solid rgba(239,68,68,0.4);"
+        f"<span style='background:rgba(161,161,170,0.1);"
+        f"color:#a1a1aa;border:1px solid rgba(161,161,170,0.35);"
         f"padding:3px 10px;border-radius:20px;"
         f"font-size:12px;font-weight:600;font-family:Inter,sans-serif;"
         f"text-transform:none'>{text}</span>"
@@ -65,11 +65,11 @@ def sentiment_badge(label: str) -> str:
     styles = {
         "bullish": "background:rgba(118,185,0,0.1);color:#76b900;"
                    "border:1px solid rgba(118,185,0,0.4)",
-        "bearish": "background:rgba(239,68,68,0.1);color:#ef4444;"
-                   "border:1px solid rgba(239,68,68,0.4)",
-        "mixed":   "background:rgba(250,204,21,0.1);color:#facc15;"
-                   "border:1px solid rgba(250,204,21,0.4)",
-        "neutral": "background:#111111;color:#a1a1aa;"
+        "bearish": "background:rgba(161,161,170,0.1);color:#a1a1aa;"
+                   "border:1px solid rgba(161,161,170,0.35)",
+        "mixed":   "background:rgba(107,114,128,0.1);color:#6b7280;"
+                   "border:1px solid rgba(107,114,128,0.35)",
+        "neutral": "background:#111111;color:#6b7280;"
                    "border:1px solid #1a1a1a",
     }
     style = styles.get(label, styles["neutral"])
@@ -91,7 +91,7 @@ def pct_colored(pct: float) -> str:
         )
     elif pct < 0:
         return (
-            f"<span style='color:#ef4444;font-weight:600;"
+            f"<span style='color:#a1a1aa;font-weight:600;"
             f"font-family:Inter,sans-serif'>{pct:.2f}%</span>"
         )
     return (
@@ -109,7 +109,7 @@ def dollar_colored(val: float) -> str:
         )
     elif val < 0:
         return (
-            f"<span style='color:#ef4444;font-weight:600;"
+            f"<span style='color:#a1a1aa;font-weight:600;"
             f"font-family:Inter,sans-serif'>-${abs(val):,.2f}</span>"
         )
     return (
@@ -166,8 +166,8 @@ def macro_card(headline: str, why_matters: str, impact: str,
                score: int, source: str, url: str = "") -> str:
     colors = {
         "bullish": "#76b900",
-        "bearish": "#ef4444",
-        "neutral": "#a1a1aa",
+        "bearish": "#a1a1aa",
+        "neutral": "#3f3f46",
     }
     color = colors.get(impact, "#a1a1aa")
     link = (

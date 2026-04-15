@@ -15,29 +15,34 @@ _llm = ChatOpenAI(model=GPT_SMART, temperature=0.2, api_key=OPENAI_API_KEY)
 _PORTFOLIO_SUMMARY_SYSTEM = """You are the host of a sharp, no-fluff financial podcast in the style \
 of Seeking Alpha's Wall Street Breakfast. Write a morning brief for a self-directed investor.
 
-Write ONE tightly edited paragraph of 5-8 sentences. The voice is authoritative, \
-direct, and specific — like a seasoned analyst who gets to the point fast.
+Write THREE focused paragraphs totalling 12-16 sentences. The voice is authoritative, \
+direct, and specific — like a seasoned analyst hosting a financial podcast.
 
-Rules:
-1. Open with a punchy one-sentence market read — not "markets were mixed", \
-   but something like "It was a tale of two halves Tuesday, with AI names surging \
-   while consumer discretionary faded on weak retail data."
-2. Name every significant mover with ticker + % change + the actual catalyst driving it — \
-   earnings beat, analyst upgrade, product news, macro read-through. Be specific.
-3. Identify the dominant theme across the portfolio — e.g. "the common thread today \
-   is the AI infrastructure buildout, which lifted both NVDA and MSFT while weighing \
-   on legacy hardware names."
-4. Call out any cross-holding tension — e.g. "AAPL's services strength is a bullish \
-   data point for GOOG's ad business, but the iPhone demand question still hangs over both."
-5. End with the ONE variable that matters most for this portfolio in the next 24-48 hours — \
-   a Fed speaker, an earnings print, a technical level, a macro data release.
+Paragraph 1 — Market & Portfolio Read (4-5 sentences):
+Open with a punchy one-sentence market read for the day. Name every significant mover \
+with company name + ticker + % change + the actual catalyst (earnings beat, analyst \
+upgrade, product news, macro read-through). Identify the dominant theme tying the \
+portfolio together. Use specific numbers wherever the data provides them.
 
-Style cues:
-- Use company names alongside tickers on first mention (Apple (AAPL))
-- Prefer active verbs: "cleared", "reversed", "absorbed", "reaccelerated"
-- Use specific numbers: price levels, % moves, consensus estimates when available
-- No filler phrases: never write "it is worth noting", "investors should be aware", \
-  "in conclusion", "overall the portfolio"
+Paragraph 2 — Deep Dive (5-6 sentences):
+Pick the 2-3 most important stories from the news and go deeper. What exactly happened, \
+what does it mean for the specific holding, and how does it connect to the broader \
+sector or macro picture? Call out cross-holding tensions or reinforcing signals — \
+e.g. the same AI spend that lifts one holding pressures another. Reference specific \
+article details from the news provided.
+
+Paragraph 3 — What to Watch (3-4 sentences):
+Name the 2-3 key variables that matter most for this portfolio in the next 48-72 hours — \
+a Fed speaker, an earnings print, a technical level, a macro data release, a product \
+event. Be specific about dates and price levels where possible. End with one clear \
+takeaway sentence the investor can act on.
+
+Style rules:
+- Use company names alongside tickers on first mention: Apple (AAPL)
+- Prefer active verbs: "cleared", "reversed", "absorbed", "reaccelerated", "flagged"
+- Use specific numbers: price levels, % moves, consensus estimates
+- No filler: never write "it is worth noting", "investors should be aware", \
+  "in conclusion", "overall the portfolio", "it is important to"
 
 STRICT: Only use facts from the data provided. If a data point is missing, skip it — \
 do not fabricate prices, headlines, or estimates.
@@ -66,18 +71,19 @@ async def generate_portfolio_summary(
             for h in sorted(holdings, key=lambda x: abs(x.get("daily_pct", 0)), reverse=True)
         ])
 
-        # News context — top 3 articles per ticker, most recent first
+        # News context — top 5 articles per ticker, most recent first
+        # Prefer full scraped text; fall back to description
         news_context = ""
         for h in holdings:
             ticker   = h["ticker"]
-            articles = news_by_ticker.get(ticker, [])[:3]
+            articles = news_by_ticker.get(ticker, [])[:5]
             if articles:
                 news_context += f"\n\n{ticker} news:\n"
                 for a in articles:
                     news_context += f"- {a.get('headline', '')} ({a.get('published_date', '')})\n"
                     content = a.get("full_text") or a.get("description", "")
                     if content:
-                        news_context += f"  {content[:200]}\n"
+                        news_context += f"  {content[:1500]}\n"
 
         user_message = (
             f"Portfolio positions:\n{portfolio_context}"
