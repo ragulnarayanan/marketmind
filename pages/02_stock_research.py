@@ -98,10 +98,16 @@ selected = TOP_50[sel_idx]
 
 logo_col, name_col, btn_col = st.columns([1, 6, 1])
 with logo_col:
-    logo_path = f"assets/logos/{selected['symbol']}.svg"
-    if os.path.exists(logo_path):
-        svg = open(logo_path).read()
-        st.markdown(f'<div style="width:48px;height:48px">{svg}</div>', unsafe_allow_html=True)
+    svg_path = f"assets/logos/{selected['symbol']}.svg"
+    png_path = f"assets/logos/{selected['symbol']}.png"
+    if os.path.exists(svg_path):
+        raw = open(svg_path, "rb").read()
+        if raw[:5] in (b"<?xml", b"<svg ") or b"<svg" in raw[:64]:
+            st.markdown(f'<div style="width:48px;height:48px">{raw.decode("utf-8")}</div>', unsafe_allow_html=True)
+        else:
+            st.image(svg_path, width=48)
+    elif os.path.exists(png_path):
+        st.image(png_path, width=48)
 with name_col:
     st.markdown(f"**{selected['name']}** &nbsp; `{selected['symbol']}`")
 with btn_col:
