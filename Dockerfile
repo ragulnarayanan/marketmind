@@ -15,5 +15,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY . .
 
+# Ensure /app is on Python's module search path
+ENV PYTHONPATH=/app
+
 # Default command — runs the daily pipeline
 CMD ["python", "pipeline/run_daily.py"]

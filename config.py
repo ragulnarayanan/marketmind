@@ -59,10 +59,14 @@ if _missing:
 
 # ── Firebase / Firestore ──────────────────────────────────────────────────────
 if not firebase_admin._apps:
-    cred = credentials.Certificate(
-        os.getenv("GOOGLE_APPLICATION_CREDENTIALS", "./gcp-service-account.json")
-    )
-    firebase_admin.initialize_app(cred)
+    cred_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS", "./gcp-service-account.json")
+    if os.path.exists(cred_path):
+        # Local dev — use service account JSON
+        cred = credentials.Certificate(cred_path)
+    else:
+        # Cloud Run — use attached service account (Application Default Credentials)
+        cred = credentials.ApplicationDefault()
+    firebase_admin.initialize_app(cred, {"projectId": GCP_PROJECT_ID})
 
 db = firestore.client()
 

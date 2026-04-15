@@ -37,3 +37,10 @@ ENV/
 
 # Claude Code
 .claude/
+
+# Google Cloud SDK
+google-cloud-sdk/
+exec -l /bin/zsh/
+
+# Deploy script (contains project config)
+pipeline/deploy.sh
