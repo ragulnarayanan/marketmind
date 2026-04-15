@@ -1,6 +1,11 @@
 # Secrets — never commit these
 .env
+.env.local
 gcp-service-account.json
+*service-account*.json
+*credentials*.json
+*.key
+*.pem
 *.json.bak
 
 # Python
@@ -38,9 +43,20 @@ ENV/
 # Claude Code
 .claude/
 
-# Google Cloud SDK
+# Google Cloud SDK (any install location)
 google-cloud-sdk/
 exec -l /bin/zsh/
+exec -l*/
 
-# Deploy script (contains project config)
+# Deploy script (contains project IDs / config)
 pipeline/deploy.sh
+
+# Jupyter notebooks (large files with embedded outputs)
+*.ipynb
+.ipynb_checkpoints/
+
+# Test / temp files
+*.tmp
+*.bak
+temp/
+tmp/
