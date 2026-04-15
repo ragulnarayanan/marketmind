@@ -226,10 +226,13 @@ for tab, (ticker, result) in zip(stock_tabs, ready):
             if fin.get("error"):
                 st.error(f"Financials unavailable: {fin['error']}")
             else:
+                def _fmt(val: str) -> str:
+                    return val.replace("_", " ").title() if val else "N/A"
+
                 c1, c2, c3 = st.columns(3)
-                c1.metric("Valuation",        fin.get("valuation", "N/A"))
-                c2.metric("Financial Health",  fin.get("financial_health", "N/A"))
-                c3.metric("Growth Profile",    fin.get("growth_profile", "N/A"))
+                c1.metric("Valuation",        _fmt(fin.get("valuation", "N/A")))
+                c2.metric("Financial Health",  _fmt(fin.get("financial_health", "N/A")))
+                c3.metric("Growth Profile",    _fmt(fin.get("growth_profile", "N/A")))
                 st.markdown("**Valuation Rationale:** " + fin.get("valuation_reason", "N/A"))
                 st.markdown("**Health Rationale:** "    + fin.get("health_reason", "N/A"))
                 metrics = fin.get("key_metrics", {})

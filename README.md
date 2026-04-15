@@ -12,6 +12,8 @@ Every morning, MarketMind reads the news, scores it against *your* portfolio, an
 
 **Who it's for:** Someone who takes their investments seriously but has a job, a life, and no Bloomberg terminal.
 
+> **Scope:** Currently built for the top 50 US-listed stocks. International exchanges, ETFs, crypto, and OTC markets are not supported.
+
 ---
 
 ### Daily Brief
