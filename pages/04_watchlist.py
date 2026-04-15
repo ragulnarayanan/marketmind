@@ -8,6 +8,7 @@ import streamlit as st
 import yfinance as yf
 
 from data.firestore_client import add_to_watchlist, get_watchlist, remove_from_watchlist
+from utils.nav import render_nav
 from utils.ui_components import green_badge, neutral_badge, pct_colored, section_header
 from utils.volume_analyzer import detect_volume_spikes
 
@@ -31,8 +32,10 @@ def _ticker_spikes(ticker: str) -> list:
 
 uid = st.session_state.get("uid")
 if not uid:
-    st.warning("Please log in from the home page.")
+    st.switch_page("app.py")
     st.stop()
+
+render_nav()
 
 st.title("Watchlist")
 

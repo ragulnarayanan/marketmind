@@ -8,6 +8,7 @@ import streamlit as st
 
 from brief import generate_daily_brief
 from data.firestore_client import get_todays_brief
+from utils.nav import render_nav
 from utils.ui_components import (
     macro_card,
     section_header,
@@ -21,8 +22,10 @@ st.set_page_config(page_title="Daily Brief | MarketMind", layout="wide")
 
 uid = st.session_state.get("uid")
 if not uid:
-    st.warning("Please log in from the home page.")
+    st.switch_page("app.py")
     st.stop()
+
+render_nav()
 
 st.title("Daily Brief")
 

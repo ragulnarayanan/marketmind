@@ -36,6 +36,39 @@ st.markdown("""
     pointer-events: none !important;
 }
 
+/* ── st.page_link styling ─────────────────────────────────────────── */
+[data-testid="stPageLink"] {
+    padding: 0 !important;
+    margin: 0 !important;
+}
+[data-testid="stPageLink"] a {
+    display: block !important;
+    padding: 9px 12px !important;
+    border-radius: 6px !important;
+    text-decoration: none !important;
+    font-family: 'Inter', sans-serif !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    color: #a1a1aa !important;
+    transition: all 0.15s ease !important;
+}
+[data-testid="stPageLink"] a:hover {
+    color: #ffffff !important;
+    background: #111111 !important;
+}
+[data-testid="stPageLink"] a[aria-current="page"] {
+    color: #76b900 !important;
+    background: rgba(118,185,0,0.08) !important;
+    border-left: 2px solid #76b900 !important;
+    padding-left: 10px !important;
+}
+/* Hide the keyboard_double_arrow_right icon */
+[data-testid="stPageLink"] a svg,
+[data-testid="stPageLink"] [data-testid="stPageLinkIcon"],
+[data-testid="stPageLink"] span[data-testid="stIconMaterial"] {
+    display: none !important;
+}
+
 /* ── Sidebar ──────────────────────────────────────────────────── */
 section[data-testid="stSidebar"] {
     background: #0a0a0a !important;
@@ -326,56 +359,8 @@ if not st.session_state.get("uid"):
 uid          = st.session_state["uid"]
 display_name = st.session_state.get("display_name", "User")
 
-with st.sidebar:
-    st.markdown(
-        "<div style='padding:20px 12px 8px'>"
-        "<span style='color:#76b900;font-size:20px;font-weight:700;"
-        "font-family:Inter,sans-serif;letter-spacing:-0.02em'>"
-        "MarketMind</span></div>",
-        unsafe_allow_html=True,
-    )
-
-    _nav = [
-        ("Home",           "/"),
-        ("Daily Brief",    "/daily_brief"),
-        ("Stock Research", "/stock_research"),
-        ("Portfolio",      "/portfolio"),
-        ("Watchlist",      "/watchlist"),
-    ]
-    _current = st.query_params.get("page", "/")
-    for _label, _path in _nav:
-        _active = (_path == "/" and _current == "/") or \
-                  (_path != "/" and _path in str(_current))
-        _style = (
-            "color:#76b900 !important;background:rgba(118,185,0,0.08);"
-            "border-left:2px solid #76b900;padding-left:10px;"
-        ) if _active else "color:#a1a1aa;"
-        st.markdown(
-            f"<a href='{_path}' style='display:block;padding:9px 12px;"
-            f"border-radius:6px;text-decoration:none;"
-            f"font-family:Inter,sans-serif;font-size:14px;"
-            f"font-weight:500;{_style}'>{_label}</a>",
-            unsafe_allow_html=True,
-        )
-
-    st.markdown(
-        "<div style='height:1px;background:#1a1a1a;margin:14px 8px'></div>",
-        unsafe_allow_html=True,
-    )
-    st.markdown(
-        f"<div style='padding:4px 12px 8px'>"
-        f"<span style='color:#ffffff;font-size:13px;font-weight:500;"
-        f"font-family:Inter,sans-serif'>{display_name}</span><br>"
-        f"<span style='color:#52525b;font-size:12px;"
-        f"font-family:Inter,sans-serif'>"
-        f"{st.session_state.get('email', '')}</span></div>",
-        unsafe_allow_html=True,
-    )
-    st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
-    if st.button("Sign Out"):
-        for key in ["uid", "display_name", "email"]:
-            st.session_state.pop(key, None)
-        st.rerun()
+from utils.nav import render_nav
+render_nav()
 
 st.title("MarketMind")
 st.markdown("Welcome back, **{}**. Use the sidebar to navigate.".format(display_name))
@@ -385,21 +370,11 @@ col1, col2 = st.columns(2)
 with col1:
     st.markdown("### Daily Brief")
     st.write("Get your personalized portfolio P&L, news summaries, macro alerts, and buy/wait signals.")
-    st.markdown(
-        "<a href='/daily_brief' style='display:inline-block;margin-top:8px;"
-        "padding:9px 20px;background:#76b900;color:#000000;font-weight:600;"
-        "font-size:14px;border-radius:8px;text-decoration:none;"
-        "font-family:Inter,sans-serif'>Open Daily Brief</a>",
-        unsafe_allow_html=True,
-    )
+    if st.button("Open Daily Brief", key="home_brief", type="primary"):
+        st.switch_page("pages/01_daily_brief.py")
 
 with col2:
     st.markdown("### Stock Research")
     st.write("Enter any ticker for a five-agent deep dive: news, SEC filings, financials, and a Buy/Hold/Sell verdict.")
-    st.markdown(
-        "<a href='/stock_research' style='display:inline-block;margin-top:8px;"
-        "padding:9px 20px;background:#76b900;color:#000000;font-weight:600;"
-        "font-size:14px;border-radius:8px;text-decoration:none;"
-        "font-family:Inter,sans-serif'>Open Research</a>",
-        unsafe_allow_html=True,
-    )
+    if st.button("Open Research", key="home_research", type="primary"):
+        st.switch_page("pages/02_stock_research.py")

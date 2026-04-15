@@ -10,14 +10,17 @@ import streamlit as st
 import yfinance as yf
 
 from agents import run_stock_research
+from utils.nav import render_nav
 from utils.ui_components import green_badge, neutral_badge, red_badge, sentiment_badge, signal_badge
 
 st.set_page_config(page_title="Stock Research | MarketMind", layout="wide")
 
 uid = st.session_state.get("uid")
 if not uid:
-    st.warning("Please log in from the home page.")
+    st.switch_page("app.py")
     st.stop()
+
+render_nav()
 
 st.title("Stock Research")
 

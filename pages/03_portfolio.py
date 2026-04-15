@@ -9,6 +9,7 @@ import yfinance as yf
 
 from brief.portfolio_pnl import compute_portfolio_snapshot
 from data.firestore_client import get_portfolio, remove_holding, upsert_holding
+from utils.nav import render_nav
 from utils.ui_components import pct_colored, section_header
 
 st.set_page_config(page_title="Portfolio | MarketMind", layout="wide")
@@ -23,8 +24,10 @@ def _load_snapshot(holdings_key: tuple) -> dict:
 
 uid = st.session_state.get("uid")
 if not uid:
-    st.warning("Please log in from the home page.")
+    st.switch_page("app.py")
     st.stop()
+
+render_nav()
 
 st.title("Portfolio")
 
