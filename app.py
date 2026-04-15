@@ -29,8 +29,12 @@ st.markdown("""
     font-family: 'Inter', sans-serif !important;
 }
 
-/* ── Hide auto-generated Streamlit nav (prevents duplicate menu) ─ */
-[data-testid="stSidebarNav"] { display: none !important; }
+/* ── Hide auto-generated Streamlit nav (prevents duplicate menu + tooltips) ─ */
+[data-testid="stSidebarNav"] {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+}
 
 /* ── Sidebar ──────────────────────────────────────────────────── */
 section[data-testid="stSidebar"] {
