@@ -181,7 +181,9 @@ button[data-testid="stBaseButton-tertiary"],
 button[data-testid="stBaseButton-primary"] *,
 button[data-testid="stBaseButton-secondary"] *,
 button[data-testid="stBaseButton-tertiary"] *,
-.stButton button * {
+button[data-testid="stFormSubmitButton"] *,
+.stButton button *,
+.stFormSubmitButton button * {
     color: #000000 !important;
 }
 .stButton > button:hover,
@@ -374,7 +376,6 @@ if not st.session_state.get("uid"):
                     st.rerun()
                 except Exception as e:
                     st.error(f"Sign-in failed: {e}")
-    st.info("For local dev, set TEST_UID in your .env file to skip the login form.")
     st.stop()
 
 # ── Main page (authenticated) ──────────────────────────────────────────────────
