@@ -1,3 +1,7 @@
+# Generated documents — local only
+docs/*.docx
+docs/build_report.py
+
 # Secrets — never commit these
 .env
 .env.local
