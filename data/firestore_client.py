@@ -3,6 +3,12 @@ from google.cloud import firestore
 from datetime import date
 
 
+def get_user(uid: str) -> dict | None:
+    ref  = db.collection("users").document(uid)
+    snap = ref.get()
+    return snap.to_dict() if snap.exists else None
+
+
 def get_or_create_user(uid: str, email: str, display_name: str) -> dict:
     ref = db.collection("users").document(uid)
     if not ref.get().exists:

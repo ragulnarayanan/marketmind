@@ -357,10 +357,19 @@ if not st.session_state.get("uid"):
     st.divider()
 
     st.markdown("<h2 style='color:#76b900;border-bottom:1px solid rgba(118,185,0,0.2);padding-bottom:8px;font-family:Inter,sans-serif;letter-spacing:0.06em;text-transform:uppercase;font-size:14px'>Sign In</h2>", unsafe_allow_html=True)
+
+    st.markdown(
+        "<p style='color:#6b7280;font-size:13px;margin-bottom:16px'>"
+        "Returning user? Sign in with the same User ID and email you registered with. "
+        "New here? Fill in all three fields to create your account."
+        "</p>",
+        unsafe_allow_html=True,
+    )
+
     with st.form("login_form"):
         user_id      = st.text_input("User ID", placeholder="your-unique-id")
-        display_name = st.text_input("Display Name", placeholder="Jane Smith")
         email        = st.text_input("Email", placeholder="you@example.com")
+        display_name = st.text_input("Display Name", placeholder="Jane Smith (only needed for new accounts)")
         submitted    = st.form_submit_button("Sign In", type="primary")
 
         if submitted:
@@ -368,10 +377,17 @@ if not st.session_state.get("uid"):
                 st.error("User ID and email are required.")
             else:
                 try:
-                    from data.firestore_client import get_or_create_user
-                    get_or_create_user(user_id, email, display_name or "User")
+                    from data.firestore_client import get_user, get_or_create_user
+                    existing = get_user(user_id)
+                    if existing:
+                        # Returning user — load saved name, ignore entered display name
+                        saved_name = existing.get("display_name", "User")
+                    else:
+                        # New user — use entered display name
+                        saved_name = display_name.strip() or "User"
+                        get_or_create_user(user_id, email, saved_name)
                     st.session_state["uid"]          = user_id
-                    st.session_state["display_name"] = display_name or "User"
+                    st.session_state["display_name"] = saved_name
                     st.session_state["email"]        = email
                     st.rerun()
                 except Exception as e:
