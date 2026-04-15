@@ -7,7 +7,7 @@ import asyncio
 import streamlit as st
 
 from brief import generate_daily_brief
-from data.firestore_client import get_todays_brief
+from data.firestore_client import delete_todays_brief, get_todays_brief
 from utils.nav import render_nav
 from utils.ui_components import (
     macro_card,
@@ -36,7 +36,8 @@ brief = get_todays_brief(uid)
 col_refresh, _ = st.columns([1, 5])
 with col_refresh:
     if st.button("Generate Today's Brief", type="primary"):
-        brief = None  # force regeneration
+        delete_todays_brief(uid)   # clear cache so new portfolio stocks are included
+        brief = None
 
 if brief is None:
     with st.status("Generating your daily brief...", expanded=True) as status:

@@ -66,6 +66,12 @@ def store_brief(uid: str, brief: dict) -> None:
     ).set(brief)
 
 
+def delete_todays_brief(uid: str) -> None:
+    db.collection("users").document(uid).collection("briefs").document(
+        str(date.today())
+    ).delete()
+
+
 def get_brief_history(uid: str, days: int = 30) -> list[dict]:
     docs = (
         db.collection("users")
