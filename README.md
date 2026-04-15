@@ -86,6 +86,8 @@ cp .env.example .env
 # Fill in your API keys and GCP project ID
 ```
 
+All required keys are listed in [`.env.example`](.env.example) with descriptions. You will need accounts for: OpenAI, NewsAPI, Finnhub, Qdrant Cloud, and GCP (Firestore + Cloud Run).
+
 Place your `gcp-service-account.json` in the project root for local dev. On Cloud Run, Application Default Credentials are used automatically.
 
 ### 4. Verify connections
