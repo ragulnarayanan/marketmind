@@ -385,8 +385,17 @@ display_name = st.session_state.get("display_name", "User")
 from utils.nav import render_nav
 render_nav()
 
-st.title("MarketMind")
-st.markdown("Welcome back, **{}**. Use the sidebar to navigate.".format(display_name))
+top_left, top_right = st.columns([6, 1])
+with top_left:
+    st.title("MarketMind")
+    st.markdown("Welcome back, **{}**.".format(display_name))
+with top_right:
+    st.markdown("<div style='padding-top:20px'></div>", unsafe_allow_html=True)
+    if st.button("Sign Out", key="home_sign_out"):
+        for key in ["uid", "display_name", "email"]:
+            st.session_state.pop(key, None)
+        st.rerun()
+
 st.divider()
 
 col1, col2 = st.columns(2)
