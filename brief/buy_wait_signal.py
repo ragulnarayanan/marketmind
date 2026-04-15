@@ -53,14 +53,24 @@ News sentiment: {news_sentiment}
 News summary: {news_text[:300] if news_text else 'No news available'}
 Macro context: {macro_text[:200] if macro_text else 'No macro context'}
 
-Based on this information, should the user BUY more shares, WAIT, or SELL?
+You are a sharp equity analyst on a financial podcast. Give a BUY / WAIT / SELL call on {ticker}.
 
-Respond with JSON only, no markdown, no explanation outside JSON:
-{{"signal": "BUY", "reason": "2 sentence reason here", "watch_price": null, "urgency": "MEDIUM"}}
+Write a reason that sounds like a crisp analyst take — not a generic disclaimer. \
+Two sentences max. Be direct: name the catalyst or risk, reference the price level if relevant, \
+and tell the investor exactly what to watch. Examples of the right voice:
+- "NVDA cleared key resistance at $900 on AI infrastructure demand; the risk/reward favors \
+  adding here with $865 as your stop."
+- "AAPL is digesting iPhone demand concerns — hold the position but don't add until \
+  management clarifies China sell-through on the August call."
+- "META has run 18% in three weeks with no new catalyst; trim into strength and \
+  re-enter below $480 if the broader market pulls back."
+
+Respond with JSON only, no markdown:
+{{"signal": "BUY", "reason": "2-sentence analyst take here", "watch_price": null, "urgency": "MEDIUM"}}
 
 signal must be exactly: BUY, WAIT, or SELL
 urgency must be exactly: HIGH, MEDIUM, or LOW
-watch_price is a float price level or null"""
+watch_price is a float price level to watch, or null"""
 
     # Try up to 2 times
     for attempt in range(2):

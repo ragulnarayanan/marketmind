@@ -119,11 +119,20 @@ async def get_macro_alerts_for_portfolio(
     prompt = f"""The investor holds these stocks:
 {holdings_str}
 
-Review these world/macro headlines and score each 0-10 for relevance \
-to this specific portfolio. Only return items scoring 6 or above.
+You are a macro analyst on a financial podcast. Review these headlines and score each \
+0-10 for relevance to this specific portfolio. Only return items scoring 6 or above.
 
-For each relevant headline explain in ONE sentence which holding it \
-affects and whether the impact is bullish, bearish, or neutral.
+For each relevant headline write a "why_matters" in ONE punchy sentence. \
+Name the specific ticker(s) affected, the direction of impact, and the mechanism — \
+not just "this could affect tech stocks." Make it sound like a sharp analyst insight.
+
+Good examples:
+- "A Fed rate-cut delay is the key headwind for NVDA and META — higher-for-longer reprices \
+  their growth multiples, and the market hasn't fully absorbed that yet."
+- "Rising oil prices are a direct margin headwind for Delta (DAL) and a tailwind for \
+  energy holdings; watch the $90/bbl level as the inflection point."
+- "China's stimulus miss removes a near-term catalyst for Apple (AAPL), which needs \
+  Greater China revenue recovery to hit the Street's FY25 numbers."
 
 Headlines:
 {headlines_text}
@@ -135,7 +144,7 @@ Return JSON array only, no markdown:
     "headline": "headline text",
     "source": "source name",
     "relevance_score": int,
-    "why_matters": "one sentence mentioning specific ticker",
+    "why_matters": "one punchy analyst sentence naming specific ticker and mechanism",
     "impact": "bullish|bearish|neutral"
   }}
 ]

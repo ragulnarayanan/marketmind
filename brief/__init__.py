@@ -98,8 +98,9 @@ async def generate_daily_brief(uid: str) -> dict:
             "news_articles",
             scroll_filter=Filter(must=[
                 FieldCondition(key="tickers", match=MatchValue(value=ticker)),
+                FieldCondition(key="has_url", match=MatchValue(value=True)),
             ]),
-            limit=50,
+            limit=15,
             with_payload=True,
             order_by=OrderBy(key="published_at", direction=Direction.DESC),
         )
