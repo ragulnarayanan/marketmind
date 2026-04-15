@@ -60,12 +60,23 @@ if _missing:
 # ── Firebase / Firestore ──────────────────────────────────────────────────────
 if not firebase_admin._apps:
     cred_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS", "./gcp-service-account.json")
-    if os.path.exists(cred_path):
-        # Local dev — use service account JSON
+    sa_json   = os.getenv("GCP_SERVICE_ACCOUNT_JSON")  # Streamlit Cloud secret
+
+    if sa_json:
+        # Streamlit Cloud — JSON stored as env var, write to temp file
+        import json as _json
+        import tempfile
+        _tmp = tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False)
+        _tmp.write(sa_json)
+        _tmp.close()
+        cred = credentials.Certificate(_tmp.name)
+    elif os.path.exists(cred_path):
+        # Local dev — use service account JSON file
         cred = credentials.Certificate(cred_path)
     else:
-        # Cloud Run — use attached service account (Application Default Credentials)
+        # Cloud Run — use Application Default Credentials
         cred = credentials.ApplicationDefault()
+
     firebase_admin.initialize_app(cred, {"projectId": GCP_PROJECT_ID})
 
 db = firestore.client()
