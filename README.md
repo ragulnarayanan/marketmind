@@ -110,8 +110,3 @@ Set `TEST_UID=your-id` in `.env` to skip the login form during local development
 - **Pipeline:** Cloud Run Job triggered by Cloud Scheduler at `0 11 * * 1-5` (6 AM ET Mon–Fri)
 - **Secrets:** All API keys stored in GCP Secret Manager, injected at runtime
 
-## Security
-
-- Never commit `.env` or `gcp-service-account.json`
-- Set a GCP billing budget alert at $10 (Billing → Budgets & alerts)
-- Firebase Blaze (pay-as-you-go) plan required for Cloud Run and external API calls
