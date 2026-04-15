@@ -381,9 +381,21 @@ col1, col2 = st.columns(2)
 with col1:
     st.markdown("### Daily Brief")
     st.write("Get your personalized portfolio P&L, news summaries, macro alerts, and buy/wait signals.")
-    st.page_link("pages/01_daily_brief.py", label="Open Daily Brief")
+    st.markdown(
+        "<a href='/daily_brief' style='display:inline-block;margin-top:8px;"
+        "padding:9px 20px;background:#76b900;color:#000000;font-weight:600;"
+        "font-size:14px;border-radius:8px;text-decoration:none;"
+        "font-family:Inter,sans-serif'>Open Daily Brief</a>",
+        unsafe_allow_html=True,
+    )
 
 with col2:
     st.markdown("### Stock Research")
     st.write("Enter any ticker for a five-agent deep dive: news, SEC filings, financials, and a Buy/Hold/Sell verdict.")
-    st.page_link("pages/02_stock_research.py", label="Open Research")
+    st.markdown(
+        "<a href='/stock_research' style='display:inline-block;margin-top:8px;"
+        "padding:9px 20px;background:#76b900;color:#000000;font-weight:600;"
+        "font-size:14px;border-radius:8px;text-decoration:none;"
+        "font-family:Inter,sans-serif'>Open Research</a>",
+        unsafe_allow_html=True,
+    )
