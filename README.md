@@ -2,6 +2,8 @@
 
 > A daily briefing for retail investors who don't have time to be their own analyst — delivered in the voice of a financial podcast, in under 2 minutes.
 
+**[Live Demo](https://ragulnarayanan-marketmind-app-u3eic9.streamlit.app/)**
+
 ## The problem
 
 Most retail investors own a portfolio but have no real edge on it. They bought the stocks, but they can't track every earnings call, analyst note, or macro shift that moves their specific holdings. By the time they catch up, the move already happened. They're competing with people who read Bloomberg all day.
