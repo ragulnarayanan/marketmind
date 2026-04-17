@@ -480,7 +480,7 @@ setTimeout(function(){
   const wCx = fp[0].x + (fp[9].x+fp[9].w - fp[0].x)/2 - fp[0].w/2; // center x for M start
 
   // ── Timing constants (ms) ──────────────────────────
-  const D_SPIN   = 900;   // M flips in sideways
+  const D_SPIN   = 1300;  // M flips in sideways
   const D_SPLIT  = 700;   // M splits into two
   const D_UNFOLD = 1000;  // letters unfold
   const D_HOP    = 950;   // each dot hop
@@ -533,10 +533,10 @@ setTimeout(function(){
     switch(ph.name){
 
       case 'spin':
-        // M flips in sideways: rotateY 90→0, scale .5→1, fade in
+        // M flips in sideways: full 360° rotateY while scaling 0→1
         ls[0].style.left    = wCx+'px';
-        ls[0].style.opacity = Math.min(t*2.5,1).toFixed(3);
-        ls[0].style.transform = `perspective(400px) rotateY(${(1-et)*90}deg) scale(${.5+et*.5})`;
+        ls[0].style.opacity = Math.min(t*3,1).toFixed(3);
+        ls[0].style.transform = `perspective(300px) rotateY(${(1-et)*360}deg) scale(${et})`;
         ls[6].style.opacity='0';
         break;
 
