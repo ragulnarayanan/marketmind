@@ -433,6 +433,13 @@ top_left, top_right = st.columns([6, 1])
 with top_left:
     st.markdown("""
 <style>
+#mm-wrap {
+    position: relative;
+    display: inline-block;
+    overflow: visible;
+    padding-top: 44px;
+    margin-top: -36px;
+}
 #mm-logo {
     font-family: 'Inter', sans-serif !important;
     font-size: 52px !important;
@@ -442,42 +449,103 @@ with top_left:
     margin: 0 0 4px 0 !important;
     padding: 0 !important;
     color: #ffffff !important;
+    display: block;
 }
-.mml {
-    display: inline-block;
-    opacity: 0;
-    transform: translateY(22px);
-    animation: mml-in 0.35s ease forwards;
-    animation-delay: calc(var(--d) * 55ms);
-}
-@keyframes mml-in {
-    to { opacity: 1; transform: translateY(0); }
-}
-.mml-iwrap {
-    position: relative;
-    display: inline-block;
-}
-.mml-idot {
+.mml { display: inline-block; }
+#mm-dot {
     position: absolute;
-    left: 50%;
-    top: 0.08em;
-    width: 0.18em;
-    height: 0.18em;
     background: #76b900;
     border-radius: 50%;
-    transform: translateX(-50%) translateY(-48px);
+    pointer-events: none;
+    box-shadow: 0 0 8px #76b900, 0 0 18px rgba(118,185,0,0.35);
     opacity: 0;
-    animation: mml-dot 0.55s cubic-bezier(0.34, 1.6, 0.64, 1) forwards;
-    animation-delay: calc(7 * 55ms + 180ms);
-}
-@keyframes mml-dot {
-    0%   { opacity: 1; transform: translateX(-50%) translateY(-48px); }
-    100% { opacity: 1; transform: translateX(-50%) translateY(0); }
+    transition: none;
 }
 </style>
-<h1 id="mm-logo">
-  <span class="mml" style="--d:0">M</span><span class="mml" style="--d:1">a</span><span class="mml" style="--d:2">r</span><span class="mml" style="--d:3">k</span><span class="mml" style="--d:4">e</span><span class="mml" style="--d:5">t</span><span class="mml" style="--d:6">M</span><span class="mml mml-iwrap" style="--d:7">&#x131;<span class="mml-idot"></span></span><span class="mml" style="--d:8">n</span><span class="mml" style="--d:9">d</span>
-</h1>
+<div id="mm-wrap">
+  <h1 id="mm-logo"><span class="mml">M</span><span class="mml">a</span><span class="mml">r</span><span class="mml">k</span><span class="mml">e</span><span class="mml">t</span><span class="mml">M</span><span class="mml">&#x131;</span><span class="mml">n</span><span class="mml">d</span></h1>
+  <div id="mm-dot"></div>
+</div>
+<script>
+(function() {
+  function run() {
+    const wrap    = document.getElementById('mm-wrap');
+    const dot     = document.getElementById('mm-dot');
+    const letters = Array.from(document.querySelectorAll('#mm-logo .mml'));
+    if (!wrap || !dot || letters.length < 10) { setTimeout(run, 150); return; }
+
+    const I_IDX    = 7;
+    const HOP_MS   = 780;
+    const PAUSE_MS = 2200;
+    const ARC_H    = 40;
+
+    function ease(t) { return t < 0.5 ? 2*t*t : -1+(4-2*t)*t; }
+
+    function getPos() {
+      const wr = wrap.getBoundingClientRect();
+      return letters.map((el, i) => {
+        const r  = el.getBoundingClientRect();
+        const sz = r.height * 0.13;
+        const y  = i === I_IDX
+          ? (r.top - wr.top) + r.height * 0.07   // land at dot height of i
+          : (r.top - wr.top) - sz * 0.6;          // float just above other letters
+        return { x: r.left - wr.left + r.width / 2, y, sz };
+      });
+    }
+
+    let fi = 0, ti = 1, phase = 'hop', t0 = null;
+
+    function frame(ts) {
+      if (!t0) t0 = ts;
+      const el  = ts - t0;
+      const pos = getPos();
+
+      if (phase === 'hop') {
+        const t  = Math.min(el / HOP_MS, 1);
+        const et = ease(t);
+        const A  = pos[fi], B = pos[ti];
+        const lx = A.x + (B.x - A.x) * et;
+        const ly = A.y + (B.y - A.y) * et - ARC_H * Math.sin(et * Math.PI);
+        const sz = A.sz + (B.sz - A.sz) * et;
+
+        dot.style.width   = sz + 'px';
+        dot.style.height  = sz + 'px';
+        dot.style.left    = (lx - sz / 2) + 'px';
+        dot.style.top     = ly + 'px';
+        dot.style.opacity = '1';
+
+        if (t >= 1) {
+          if (ti === I_IDX) { phase = 'pause'; }
+          else              { fi = ti; ti++; }
+          t0 = ts;
+        }
+
+      } else if (phase === 'pause') {
+        const t  = Math.min(el / PAUSE_MS, 1);
+        const pi = pos[I_IDX];
+        // Small settle bob that damps out
+        const bob = Math.abs(Math.sin(t * Math.PI * 2.5)) * 8 * Math.max(0, 1 - t * 2.5);
+        dot.style.left = (pi.x - pi.sz / 2) + 'px';
+        dot.style.top  = (pi.y - bob) + 'px';
+        if (t >= 1) { phase = 'fadeout'; t0 = ts; }
+
+      } else { // fadeout
+        const t = Math.min(el / 220, 1);
+        dot.style.opacity = (1 - t).toFixed(3);
+        if (t >= 1) { fi = 0; ti = 1; phase = 'hop'; t0 = ts; }
+      }
+
+      requestAnimationFrame(frame);
+    }
+
+    setTimeout(() => { t0 = null; requestAnimationFrame(frame); }, 300);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', run);
+  } else { run(); }
+})();
+</script>
 """, unsafe_allow_html=True)
     st.markdown("<p style='color:#ffffff;font-size:15px'>Welcome back, <b>{}</b>.</p>".format(display_name), unsafe_allow_html=True)
 with top_right:
