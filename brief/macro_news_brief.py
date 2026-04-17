@@ -9,10 +9,9 @@ import re
 from datetime import datetime, timezone
 
 import feedparser
-import finnhub
 from langchain_openai import ChatOpenAI
 
-from config import FINNHUB_API_KEY, GPT_FAST, OPENAI_API_KEY
+from config import GPT_FAST, OPENAI_API_KEY
 
 _llm = ChatOpenAI(model=GPT_FAST, temperature=0, api_key=OPENAI_API_KEY)
 
@@ -93,12 +92,9 @@ async def get_macro_alerts_for_portfolio(
     if not holdings:
         return []
 
-    # Fetch from both sources in parallel
-    rss_articles, fh_articles = await asyncio.gather(
-        asyncio.to_thread(_fetch_rss_articles),
-        asyncio.to_thread(_fetch_finnhub_general_news),
-    )
-    all_articles = rss_articles + fh_articles
+    # RSS feeds only — all articles have valid URLs for the "Read →" link.
+    # Finnhub general news has no URLs so it was excluded from Global Headlines.
+    all_articles = await asyncio.to_thread(_fetch_rss_articles)
 
     if not all_articles:
         return []
