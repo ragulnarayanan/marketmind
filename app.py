@@ -436,16 +436,16 @@ if not st.session_state.get("uid"):
             "<p style='color:#a1a1aa;font-size:15px;margin:4px 0 28px'>AI-powered stock research and daily portfolio brief.</p>",
             unsafe_allow_html=True,
         )
-        for icon, title, desc in [
-            ("📊", "Daily Brief",      "Personalized P&L, news summaries, macro alerts, and audio brief"),
-            ("🔍", "Stock Research",   "Five-agent deep dive: news, SEC filings, financials and verdict"),
-            ("🎯", "Buy / Wait / Sell","Analyst-style signals with rationale and price levels to watch"),
+        for title, desc in [
+            ("Daily Brief",      "Personalized P&L, news summaries, macro alerts, and audio brief"),
+            ("Stock Research",   "Five-agent deep dive: news, SEC filings, financials, and verdict"),
+            ("Buy / Wait / Sell","Analyst-style signals with rationale and price levels to watch"),
         ]:
             st.markdown(
-                f"<div style='display:flex;gap:14px;margin-bottom:18px;align-items:flex-start'>"
-                f"<span style='font-size:22px;line-height:1.3'>{icon}</span>"
-                f"<div><div style='color:#ffffff;font-weight:600;font-size:14px;margin-bottom:2px'>{title}</div>"
-                f"<div style='color:#6b7280;font-size:13px'>{desc}</div></div></div>",
+                f"<div style='display:flex;gap:14px;margin-bottom:20px;align-items:flex-start'>"
+                f"<div style='width:3px;min-width:3px;height:36px;background:#76b900;border-radius:2px;margin-top:2px'></div>"
+                f"<div><div style='color:#ffffff;font-weight:600;font-size:14px;margin-bottom:3px'>{title}</div>"
+                f"<div style='color:#6b7280;font-size:13px;line-height:1.5'>{desc}</div></div></div>",
                 unsafe_allow_html=True,
             )
 
