@@ -414,6 +414,14 @@ st.markdown("""
 [data-testid="stAppViewContainer"] h4 {
     color: #ffffff !important;
 }
+/* keep button text black */
+[data-testid="stAppViewContainer"] button,
+[data-testid="stAppViewContainer"] button *,
+[data-testid="stAppViewContainer"] button p,
+[data-testid="stAppViewContainer"] button span,
+[data-testid="stAppViewContainer"] button div {
+    color: #000000 !important;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -442,3 +450,93 @@ with col2:
     st.markdown("<p style='color:#ffffff'>Enter any ticker for a five-agent deep dive: news, SEC filings, financials, and a Buy/Hold/Sell verdict.</p>", unsafe_allow_html=True)
     if st.button("Open Research", key="home_research", type="primary"):
         st.switch_page("pages/02_stock_research.py")
+
+# ── Animated market chart footer ──────────────────────────────────────────────
+import streamlit.components.v1 as _components
+_components.html("""
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: transparent; overflow: hidden; }
+  canvas { display: block; width: 100%; height: 100px; }
+</style>
+<canvas id="chart"></canvas>
+<script>
+  const canvas = document.getElementById('chart');
+  const ctx    = canvas.getContext('2d');
+
+  function resize() {
+    canvas.width  = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  const POINTS   = 120;
+  const SPEED    = 1.2;
+  let   prices   = [];
+  let   offset   = 0;
+
+  // Seed a realistic-looking price walk
+  let p = 50;
+  for (let i = 0; i < POINTS * 2; i++) {
+    p += (Math.random() - 0.49) * 3;
+    p  = Math.max(10, Math.min(90, p));
+    prices.push(p);
+  }
+
+  function draw() {
+    const W = canvas.width;
+    const H = canvas.height;
+    ctx.clearRect(0, 0, W, H);
+
+    // Advance price walk
+    offset += SPEED;
+    if (offset >= 1) {
+      offset -= 1;
+      prices.shift();
+      let last = prices[prices.length - 1];
+      last += (Math.random() - 0.49) * 3;
+      last  = Math.max(10, Math.min(90, last));
+      prices.push(last);
+    }
+
+    const visible = prices.slice(-POINTS);
+    const min     = Math.min(...visible) - 4;
+    const max     = Math.max(...visible) + 4;
+    const range   = max - min || 1;
+
+    const toY = v => H - ((v - min) / range) * (H * 0.85) - H * 0.05;
+    const toX = i => ((i - offset) / (POINTS - 1)) * W;
+
+    // Draw segment by segment, green if up, red if down
+    for (let i = 1; i < visible.length; i++) {
+      const x1 = toX(i - 1), y1 = toY(visible[i - 1]);
+      const x2 = toX(i),     y2 = toY(visible[i]);
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.strokeStyle = visible[i] >= visible[i - 1] ? '#76b900' : '#e53e3e';
+      ctx.lineWidth   = 2;
+      ctx.lineJoin    = 'round';
+      ctx.stroke();
+    }
+
+    // Glow dot at tip
+    const lx = toX(visible.length - 1);
+    const ly = toY(visible[visible.length - 1]);
+    const rising = visible[visible.length - 1] >= visible[visible.length - 2];
+    const dotColor = rising ? '#76b900' : '#e53e3e';
+    ctx.beginPath();
+    ctx.arc(lx, ly, 4, 0, Math.PI * 2);
+    ctx.fillStyle = dotColor;
+    ctx.shadowColor = dotColor;
+    ctx.shadowBlur  = 10;
+    ctx.fill();
+    ctx.shadowBlur  = 0;
+
+    requestAnimationFrame(draw);
+  }
+
+  draw();
+</script>
+""", height=110)
