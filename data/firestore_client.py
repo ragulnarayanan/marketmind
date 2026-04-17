@@ -1,20 +1,6 @@
-from config import db, GCS_BUCKET_NAME, GCP_PROJECT_ID
-from google.cloud import firestore, storage
+from config import db
+from google.cloud import firestore
 from datetime import date
-
-_gcs_client = None
-
-
-def _gcs() -> storage.Client:
-    """Lazy GCS client — created on first use so import-time auth issues are avoided."""
-    global _gcs_client
-    if _gcs_client is None:
-        _gcs_client = storage.Client(project=GCP_PROJECT_ID)
-    return _gcs_client
-
-
-def _gcs_audio_path(uid: str, date_str: str) -> str:
-    return f"audio_briefs/{uid}/{date_str}.mp3"
 
 
 def get_user(uid: str) -> dict | None:
@@ -91,41 +77,6 @@ def delete_todays_brief(uid: str) -> None:
         str(date.today())
     ).delete()
 
-
-def get_todays_audio(uid: str) -> bytes | None:
-    """Download today's audio MP3 from GCS. Returns None if not yet generated."""
-    date_str  = str(date.today())
-    blob_name = _gcs_audio_path(uid, date_str)
-    try:
-        bucket = _gcs().bucket(GCS_BUCKET_NAME)
-        blob   = bucket.blob(blob_name)
-        if not blob.exists():
-            return None
-        return blob.download_as_bytes()
-    except Exception:
-        return None
-
-
-def save_todays_audio(uid: str, audio_bytes: bytes) -> None:
-    """Upload today's audio MP3 to GCS."""
-    date_str  = str(date.today())
-    blob_name = _gcs_audio_path(uid, date_str)
-    bucket    = _gcs().bucket(GCS_BUCKET_NAME)
-    blob      = bucket.blob(blob_name)
-    blob.upload_from_string(audio_bytes, content_type="audio/mpeg")
-
-
-def delete_todays_audio(uid: str) -> None:
-    """Delete today's audio MP3 from GCS."""
-    date_str  = str(date.today())
-    blob_name = _gcs_audio_path(uid, date_str)
-    try:
-        bucket = _gcs().bucket(GCS_BUCKET_NAME)
-        blob   = bucket.blob(blob_name)
-        if blob.exists():
-            blob.delete()
-    except Exception:
-        pass
 
 
 def get_brief_history(uid: str, days: int = 30) -> list[dict]:

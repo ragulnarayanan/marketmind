@@ -9,13 +9,7 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 from brief import generate_daily_brief
-from data.firestore_client import (
-    delete_todays_audio,
-    delete_todays_brief,
-    get_todays_audio,
-    get_todays_brief,
-    save_todays_audio,
-)
+from data.firestore_client import delete_todays_brief, get_todays_brief
 from utils.nav import render_nav
 from utils.ui_components import (
     macro_card,
@@ -199,8 +193,7 @@ brief = get_todays_brief(uid)
 col_refresh, _ = st.columns([1, 5])
 with col_refresh:
     if st.button("Generate Today's Brief", type="primary"):
-        delete_todays_brief(uid)   # clear cache so new portfolio stocks are included
-        delete_todays_audio(uid)   # clear audio cache so it regenerates with new brief
+        delete_todays_brief(uid)
         st.session_state.pop("audio_brief", None)
         brief = None
 
@@ -210,12 +203,6 @@ if brief is None:
         brief = asyncio.run(generate_daily_brief(uid))
         st.write("Brief complete.")
         status.update(label="Daily brief ready!", state="complete")
-
-# Pre-load audio from Firestore cache if not already in session
-if "audio_brief" not in st.session_state:
-    cached_audio = get_todays_audio(uid)
-    if cached_audio:
-        st.session_state["audio_brief"] = cached_audio
 
 if brief.get("empty"):
     st.info(brief["message"])
@@ -245,20 +232,12 @@ col_btn, col_spacer = st.columns([1, 4])
 with col_btn:
     if st.button("▶  Listen to Brief", use_container_width=True):
         if "audio_brief" not in st.session_state:
-            # Check GCS cache first
-            cached = get_todays_audio(uid)
-            if cached:
-                st.session_state["audio_brief"] = cached
-            else:
-                # Generate fresh, then cache to GCS
-                with st.spinner("Generating audio brief..."):
-                    try:
-                        from brief.audio_brief import generate_audio_brief
-                        audio_bytes = generate_audio_brief(brief)
-                        save_todays_audio(uid, audio_bytes)
-                        st.session_state["audio_brief"] = audio_bytes
-                    except Exception as e:
-                        st.error(f"Audio generation failed: {e}")
+            with st.spinner("Generating audio brief..."):
+                try:
+                    from brief.audio_brief import generate_audio_brief
+                    st.session_state["audio_brief"] = generate_audio_brief(brief)
+                except Exception as e:
+                    st.error(f"Audio generation failed: {e}")
 
 if "audio_brief" in st.session_state:
     audio_b64 = base64.b64encode(st.session_state["audio_brief"]).decode()
