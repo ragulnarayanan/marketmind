@@ -23,11 +23,11 @@ Every morning, MarketMind reads the news, scores it against *your* portfolio, an
 A personalized morning brief generated fresh each day:
 
 - **Portfolio snapshot** — P&L across all holdings, daily movers, total portfolio performance
-- **Analyst-style summary** — three-paragraph breakdown in the voice of a financial podcast: market read, deep dive on key stories, and what to watch in the next 48 hours
+- **Analyst-style summary** — four-paragraph breakdown in the voice of a financial podcast: market read, per-stock breakdown, cross-portfolio themes, and what to watch in the next 48–72 hours
 - **Per-stock signals** — BUY / WAIT / SELL call with a 3-sentence analyst rationale and price level to watch
 - **Macro alerts** — world and market news scored for relevance to your specific holdings, with one-line impact summaries
 - **Listen mode** — full audio brief via OpenAI TTS, consumable on the go
-- **Further reading** — source links to the actual articles behind the analysis
+- **Further reading** — per-ticker source links (min 5–6 per holding) organized in expandable inline dropdowns
 
 ### Stock Research
 
