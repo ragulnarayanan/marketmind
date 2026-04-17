@@ -1,6 +1,6 @@
 # MarketMind
 
-> A daily briefing for retail investors who don't have time to be their own analyst — delivered in the voice of a financial podcast, in under 2 minutes.
+> A daily briefing for retail investors who don't have time to be their own analyst — delivered in the voice of a financial podcast, in under 5 minutes.
 
 **[Live Demo](https://ragulnarayanan-marketmind-app-u3eic9.streamlit.app/)**
 
@@ -10,7 +10,7 @@ Most retail investors own a portfolio but have no real edge on it. They bought t
 
 ## What MarketMind does
 
-Every morning, MarketMind reads the news, scores it against *your* portfolio, and hands you a brief in the voice of a financial podcast host — what moved, why, what it means for *your* stocks, and what to watch today. Listen to it like a podcast on your commute, or read it in 2 minutes. Source links are there when you want to go deeper.
+Every morning, MarketMind reads the news, scores it against *your* portfolio, and hands you a brief in the voice of a financial podcast host — what moved, why, what it means for *your* stocks, and what to watch today. Listen to it like a podcast on your commute, or read it in 5 minutes. Source links are there when you want to go deeper.
 
 **Who it's for:** Someone who takes their investments seriously but has a job, a life, and no Bloomberg terminal.
 
