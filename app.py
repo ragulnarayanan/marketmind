@@ -356,7 +356,7 @@ if not st.session_state.get("uid"):
         "<h1 style='font-family:Inter,sans-serif;font-size:52px;font-weight:700;"
         "letter-spacing:-0.03em;color:#ffffff;margin:0 0 4px 0;line-height:1.1'>"
         "MarketM<span style='position:relative;display:inline-block'>&#x131;"
-        "<span style='position:absolute;left:50%;top:0.08em;transform:translateX(-50%);"
+        "<span style='position:absolute;left:50%;top:0.16em;transform:translateX(-50%);"
         "width:0.17em;height:0.17em;background:#76b900;border-radius:50%;display:block'>"
         "</span></span>nd</h1>",
         unsafe_allow_html=True,
