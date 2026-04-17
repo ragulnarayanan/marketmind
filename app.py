@@ -488,32 +488,6 @@ if not st.session_state.get("uid"):
                     except Exception as e:
                         st.error(f"Sign-in failed: {e}")
 
-    # ── Animated chart (same as home page) ───────────────────────────────────
-    st.markdown("<div style='margin-top:32px'></div>", unsafe_allow_html=True)
-    _cv1.html("""<style>*{margin:0;padding:0;box-sizing:border-box}html,body{background:transparent;overflow:hidden}canvas{display:block;width:100%;height:100%}</style>
-<canvas id="chart"></canvas>
-<script>
-  const canvas=document.getElementById('chart'),ctx=canvas.getContext('2d');
-  function resize(){canvas.width=canvas.offsetWidth*window.devicePixelRatio;canvas.height=canvas.offsetHeight*window.devicePixelRatio;ctx.scale(window.devicePixelRatio,window.devicePixelRatio);}
-  resize();window.addEventListener('resize',resize);
-  const POINTS=120,SPEED=0.03,MEAN=150,VOL=1.8;let prices=[],offset=0;
-  let p=MEAN;for(let i=0;i<POINTS+5;i++){p+=(MEAN-p)*.03+(Math.random()-.5)*VOL*2;p=Math.max(60,Math.min(240,p));prices.push(p);}
-  function addBar(){let l=prices[prices.length-1];l+=(MEAN-l)*.03+(Math.random()-.5)*VOL*2;l=Math.max(60,Math.min(240,l));prices.push(l);if(prices.length>POINTS+20)prices.shift();}
-  function smoothPath(pts,toX,toY){ctx.beginPath();ctx.moveTo(toX(0),toY(pts[0]));for(let i=0;i<pts.length-1;i++){const cx=(toX(i)+toX(i+1))/2;ctx.bezierCurveTo(cx,toY(pts[i]),cx,toY(pts[i+1]),toX(i+1),toY(pts[i+1]));}}
-  function draw(){const W=canvas.offsetWidth,H=canvas.offsetHeight;ctx.clearRect(0,0,W,H);offset+=SPEED;if(offset>=1){offset-=1;addBar();}
-  const visible=prices.slice(-(POINTS+1)),minV=Math.min(...visible)-10,maxV=Math.max(...visible)+10,range=maxV-minV||1;
-  const PAD_T=10,PAD_B=10,cH=H-PAD_T-PAD_B;
-  const toX=i=>((i-offset)/(POINTS-1))*W,toY=v=>PAD_T+cH-((v-minV)/range)*cH;
-  const firstP=visible[0],lastP=visible[visible.length-1],rising=lastP>=firstP;
-  const lc=rising?'#76b900':'#e53e3e',fc=rising?'rgba(118,185,0,':'rgba(229,62,62,';
-  const grad=ctx.createLinearGradient(0,PAD_T,0,PAD_T+cH);grad.addColorStop(0,fc+'0.15)');grad.addColorStop(1,fc+'0.0)');
-  smoothPath(visible,toX,toY);ctx.lineTo(toX(visible.length-1),H);ctx.lineTo(toX(0),H);ctx.closePath();ctx.fillStyle=grad;ctx.fill();
-  smoothPath(visible,toX,toY);ctx.strokeStyle=lc;ctx.lineWidth=2;ctx.lineJoin='round';ctx.stroke();
-  const lx=toX(visible.length-1),ly=toY(lastP);ctx.shadowColor=lc;ctx.shadowBlur=14;ctx.beginPath();ctx.arc(lx,ly,4,0,Math.PI*2);ctx.fillStyle=lc;ctx.fill();ctx.shadowBlur=0;
-  requestAnimationFrame(draw);}
-  draw();
-</script>""", height=320)
-
     st.stop()
 
 # ── Main page (authenticated) ──────────────────────────────────────────────────
@@ -742,7 +716,7 @@ setTimeout(function(){
 </body>
 </html>
 """, height=112)
-    st.markdown("<p style='color:#ffffff;font-size:15px'>Welcome back, <b>{}</b>.</p>".format(display_name), unsafe_allow_html=True)
+    st.markdown("<p style='color:#ffffff;font-size:18px'>Welcome back, <b>{}</b>.</p>".format(display_name), unsafe_allow_html=True)
 with top_right:
     st.markdown("<div style='padding-top:20px'></div>", unsafe_allow_html=True)
     if st.button("Sign Out", key="home_sign_out"):
@@ -754,14 +728,14 @@ st.divider()
 
 col1, col2 = st.columns(2)
 with col1:
-    st.markdown("### Daily Brief")
-    st.markdown("<p style='color:#ffffff'>Get your personalized portfolio P&L, news summaries, macro alerts, and buy/wait signals.</p>", unsafe_allow_html=True)
+    st.markdown("<h3 style='font-size:22px;color:#ffffff;font-weight:700;margin-bottom:10px'>Daily Brief</h3>", unsafe_allow_html=True)
+    st.markdown("<p style='color:#ffffff;font-size:16px;line-height:1.6'>Get your personalized portfolio P&L, news summaries, macro alerts, and buy/wait signals.</p>", unsafe_allow_html=True)
     if st.button("Open Daily Brief", key="home_brief", type="primary"):
         st.switch_page("pages/01_daily_brief.py")
 
 with col2:
-    st.markdown("### Stock Research")
-    st.markdown("<p style='color:#ffffff'>Enter any ticker for a five-agent deep dive: news, SEC filings, financials, and a Buy/Hold/Sell verdict.</p>", unsafe_allow_html=True)
+    st.markdown("<h3 style='font-size:22px;color:#ffffff;font-weight:700;margin-bottom:10px'>Stock Research</h3>", unsafe_allow_html=True)
+    st.markdown("<p style='color:#ffffff;font-size:16px;line-height:1.6'>Enter any ticker for a five-agent deep dive: news, SEC filings, financials, and a Buy/Hold/Sell verdict.</p>", unsafe_allow_html=True)
     if st.button("Open Research", key="home_research", type="primary"):
         st.switch_page("pages/02_stock_research.py")
 
