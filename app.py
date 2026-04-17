@@ -401,6 +401,22 @@ display_name = st.session_state.get("display_name", "User")
 from utils.nav import render_nav
 render_nav()
 
+st.markdown("""
+<style>
+[data-testid="stAppViewContainer"] p,
+[data-testid="stAppViewContainer"] span,
+[data-testid="stAppViewContainer"] div,
+[data-testid="stAppViewContainer"] label,
+[data-testid="stAppViewContainer"] li,
+[data-testid="stAppViewContainer"] h1,
+[data-testid="stAppViewContainer"] h2,
+[data-testid="stAppViewContainer"] h3,
+[data-testid="stAppViewContainer"] h4 {
+    color: #ffffff !important;
+}
+</style>
+""", unsafe_allow_html=True)
+
 top_left, top_right = st.columns([6, 1])
 with top_left:
     st.title("MarketMind")
