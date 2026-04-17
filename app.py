@@ -404,8 +404,8 @@ if not st.session_state.get("uid"):
   const dot=document.getElementById('dot');
   ls.forEach((el,i)=>{el.style.left=fp[i].x+'px';el.style.top=fp[i].y+'px';});
   const wCx=fp[0].x+(fp[9].x+fp[9].w-fp[0].x)/2-fp[0].w/2;
-  const D_SPIN=1300,D_SPLIT=700,D_UNFOLD=1000,D_HOP=950,D_SETTLE=700,D_WAIT=3500,D_FADE=700,D_PAUSE=1800;
-  const PHASES=[{name:'spin',dur:D_SPIN},{name:'split',dur:D_SPLIT},{name:'unfold',dur:D_UNFOLD},{name:'hop1',dur:D_HOP},{name:'hop2',dur:D_HOP},{name:'hop3',dur:D_HOP},{name:'settle',dur:D_SETTLE},{name:'wait',dur:D_WAIT},{name:'fade',dur:D_FADE},{name:'pause',dur:D_PAUSE}];
+  const D_SPIN=1300,D_SPLIT=700,D_UNFOLD=1000,D_FALL=900,D_BOUNCE=450,D_HOP=800,D_SETTLE=600,D_WAIT=3500,D_FADE=700,D_PAUSE=1800;
+  const PHASES=[{name:'spin',dur:D_SPIN},{name:'split',dur:D_SPLIT},{name:'unfold',dur:D_UNFOLD},{name:'fall',dur:D_FALL},{name:'bounce',dur:D_BOUNCE},{name:'hop1',dur:D_HOP},{name:'hop2',dur:D_HOP},{name:'settle',dur:D_SETTLE},{name:'wait',dur:D_WAIT},{name:'fade',dur:D_FADE},{name:'pause',dur:D_PAUSE}];
   function eO(t){return 1-Math.pow(1-t,3)} function eIO(t){return t<.5?2*t*t:-1+(4-2*t)*t;}
   function dp(i){return{x:fp[i].x+fp[i].w*.5,y:fp[i].y+fp[i].h*.07,sz:fp[i].h*.13};}
   function sd(x,y,sz,op){dot.style.width=sz+'px';dot.style.height=sz+'px';dot.style.left=(x-sz/2)+'px';dot.style.top=y+'px';dot.style.opacity=op;}
@@ -417,9 +417,10 @@ if not st.session_state.get("uid"):
       case 'spin':ls[0].style.left=wCx+'px';ls[0].style.opacity=Math.min(t*3,1).toFixed(3);ls[0].style.transform=`perspective(300px) rotateY(${(1-et)*360}deg) scale(${et})`;ls[6].style.opacity='0';break;
       case 'split':ls[0].style.transform='';ls[0].style.left=(wCx+(fp[0].x-wCx)*et)+'px';ls[0].style.opacity='1';ls[6].style.left=(wCx+(fp[6].x-wCx)*et)+'px';ls[6].style.opacity=Math.min(t*2,1).toFixed(3);ls[6].style.transform=`scale(${.4+et*.6})`;break;
       case 'unfold':ls[0].style.left=fp[0].x+'px';ls[0].style.transform='';ls[6].style.left=fp[6].x+'px';ls[6].style.transform='';ls[6].style.opacity='1';[1,2,3,4,5].forEach((idx,ord)=>{const lt=Math.max(0,Math.min((el-ord*90)/220,1)),e2=eO(lt);ls[idx].style.opacity=e2.toFixed(3);ls[idx].style.transform=`scaleX(${e2})`;ls[idx].style.transformOrigin='left center';});[7,8,9].forEach((idx,ord)=>{const lt=Math.max(0,Math.min((el-ord*90)/220,1)),e2=eO(lt);ls[idx].style.opacity=e2.toFixed(3);ls[idx].style.transform=`scaleX(${e2})`;ls[idx].style.transformOrigin='left center';});break;
-      case 'hop1':{ls.forEach((e2,i)=>{e2.style.opacity='1';e2.style.transform='';e2.style.left=fp[i].x+'px';});const A=dp(0),B=dp(3),ei=eIO(t);sd(A.x+(B.x-A.x)*ei,A.y+(B.y-A.y)*ei-ARC*Math.sin(ei*Math.PI),A.sz+(B.sz-A.sz)*ei,'1');break;}
-      case 'hop2':{const A=dp(3),B=dp(6),ei=eIO(t);sd(A.x+(B.x-A.x)*ei,A.y+(B.y-A.y)*ei-ARC*Math.sin(ei*Math.PI),A.sz+(B.sz-A.sz)*ei,'1');break;}
-      case 'hop3':{const A=dp(6),B=dp(7),ei=eIO(t);sd(A.x+(B.x-A.x)*ei,A.y+(B.y-A.y)*ei-ARC*Math.sin(ei*Math.PI),A.sz+(B.sz-A.sz)*ei,'1');break;}
+      case 'fall':{ls.forEach((e2,i)=>{e2.style.opacity='1';e2.style.transform='';e2.style.left=fp[i].x+'px';});const D=dp(9),sy=D.y-140,g=t*t;sd(D.x,sy+(D.y-sy)*g,D.sz,Math.min(t/0.25,1).toFixed(3));break;}
+      case 'bounce':{const p=dp(9),bh=22*Math.pow(1-t,1.5)*Math.abs(Math.sin(t*Math.PI*2));sd(p.x,p.y-bh,p.sz,'1');break;}
+      case 'hop1':{const A=dp(9),B=dp(8),ei=eIO(t);sd(A.x+(B.x-A.x)*ei,A.y+(B.y-A.y)*ei-ARC*Math.sin(ei*Math.PI),A.sz+(B.sz-A.sz)*ei,'1');break;}
+      case 'hop2':{const A=dp(8),B=dp(7),ei=eIO(t);sd(A.x+(B.x-A.x)*ei,A.y+(B.y-A.y)*ei-ARC*Math.sin(ei*Math.PI),A.sz+(B.sz-A.sz)*ei,'1');break;}
       case 'settle':{const p=dp(7),bob=Math.abs(Math.sin(t*Math.PI*2.5))*7*Math.max(0,1-t*2.5);sd(p.x,p.y-bob,p.sz,'1');break;}
       case 'wait':sd(dp(7).x,dp(7).y,dp(7).sz,'1');break;
       case 'fade':{const op=(1-et).toFixed(3);ls.forEach(el=>{el.style.opacity=op;});dot.style.opacity=op;break;}
@@ -579,6 +580,8 @@ setTimeout(function(){
   const D_SPIN   = 1300;  // M flips in sideways
   const D_SPLIT  = 700;   // M splits into two
   const D_UNFOLD = 1000;  // letters unfold
+  const D_FALL   = 900;   // dot free-falls onto d
+  const D_BOUNCE = 450;   // dot bounces on d
   const D_HOP    = 950;   // each dot hop
   const D_SETTLE = 700;   // dot settles on i
   const D_WAIT   = 3500;  // wait before restart
@@ -589,9 +592,10 @@ setTimeout(function(){
     {name:'spin',   dur:D_SPIN},
     {name:'split',  dur:D_SPLIT},
     {name:'unfold', dur:D_UNFOLD},
-    {name:'hop1',   dur:D_HOP},    // dot: M1 → k
-    {name:'hop2',   dur:D_HOP},    // dot: k  → M2
-    {name:'hop3',   dur:D_HOP},    // dot: M2 → i
+    {name:'fall',   dur:D_FALL},    // dot: falls onto d(9)
+    {name:'bounce', dur:D_BOUNCE},  // dot: bounces on d(9)
+    {name:'hop1',   dur:D_HOP},     // dot: d(9) → n(8)
+    {name:'hop2',   dur:D_HOP},     // dot: n(8) → i(7)
     {name:'settle', dur:D_SETTLE},
     {name:'wait',   dur:D_WAIT},
     {name:'fade',   dur:D_FADE},
@@ -663,19 +667,24 @@ setTimeout(function(){
         });
         break;
 
-      case 'hop1':{ // M1(0) → k(3)
+      case 'fall':{ // dot drops from above d(9)
         ls.forEach((e2,i)=>{ e2.style.opacity='1'; e2.style.transform=''; e2.style.left=fp[i].x+'px'; });
-        const A=dp(0),B=dp(3),eit=easeIO(t);
+        const D=dp(9),sy=D.y-140,g=t*t;
+        setDot(D.x, sy+(D.y-sy)*g, D.sz, Math.min(t/0.25,1).toFixed(3));
+        break;}
+
+      case 'bounce':{ // dot bounces on d(9)
+        const p=dp(9),bh=22*Math.pow(1-t,1.5)*Math.abs(Math.sin(t*Math.PI*2));
+        setDot(p.x, p.y-bh, p.sz, '1');
+        break;}
+
+      case 'hop1':{ // d(9) → n(8)
+        const A=dp(9),B=dp(8),eit=easeIO(t);
         setDot(A.x+(B.x-A.x)*eit, A.y+(B.y-A.y)*eit-ARC*Math.sin(eit*Math.PI), A.sz+(B.sz-A.sz)*eit, '1');
         break;}
 
-      case 'hop2':{ // k(3) → M2(6)
-        const A=dp(3),B=dp(6),eit=easeIO(t);
-        setDot(A.x+(B.x-A.x)*eit, A.y+(B.y-A.y)*eit-ARC*Math.sin(eit*Math.PI), A.sz+(B.sz-A.sz)*eit, '1');
-        break;}
-
-      case 'hop3':{ // M2(6) → i(7)
-        const A=dp(6),B=dp(7),eit=easeIO(t);
+      case 'hop2':{ // n(8) → i(7)
+        const A=dp(8),B=dp(7),eit=easeIO(t);
         setDot(A.x+(B.x-A.x)*eit, A.y+(B.y-A.y)*eit-ARC*Math.sin(eit*Math.PI), A.sz+(B.sz-A.sz)*eit, '1');
         break;}
 
