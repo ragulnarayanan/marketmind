@@ -70,6 +70,8 @@ if not firebase_admin._apps:
         _tmp = tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False)
         _tmp.write(sa_json)
         _tmp.close()
+        # Point GOOGLE_APPLICATION_CREDENTIALS so all GCP clients (GCS, etc.) use it
+        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = _tmp.name
         cred = credentials.Certificate(_tmp.name)
     elif os.path.exists(cred_path):
         # Local dev — use service account JSON file

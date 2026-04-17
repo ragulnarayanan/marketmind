@@ -1,8 +1,8 @@
-from config import db, GCS_BUCKET_NAME
+from config import db, GCS_BUCKET_NAME, GCP_PROJECT_ID
 from google.cloud import firestore, storage
 from datetime import date
 
-_gcs = storage.Client()
+_gcs = storage.Client(project=GCP_PROJECT_ID)
 
 
 def _gcs_audio_path(uid: str, date_str: str) -> str:
