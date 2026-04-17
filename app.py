@@ -431,7 +431,54 @@ st.markdown("""
 
 top_left, top_right = st.columns([6, 1])
 with top_left:
-    st.title("MarketMind")
+    st.markdown("""
+<style>
+#mm-logo {
+    font-family: 'Inter', sans-serif !important;
+    font-size: 52px !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.03em !important;
+    line-height: 1.1 !important;
+    margin: 0 0 4px 0 !important;
+    padding: 0 !important;
+    color: #ffffff !important;
+}
+.mml {
+    display: inline-block;
+    opacity: 0;
+    transform: translateY(22px);
+    animation: mml-in 0.35s ease forwards;
+    animation-delay: calc(var(--d) * 55ms);
+}
+@keyframes mml-in {
+    to { opacity: 1; transform: translateY(0); }
+}
+.mml-iwrap {
+    position: relative;
+    display: inline-block;
+}
+.mml-idot {
+    position: absolute;
+    left: 50%;
+    top: 0.08em;
+    width: 0.18em;
+    height: 0.18em;
+    background: #76b900;
+    border-radius: 50%;
+    transform: translateX(-50%) translateY(-48px);
+    opacity: 0;
+    animation: mml-dot 0.55s cubic-bezier(0.34, 1.6, 0.64, 1) forwards;
+    animation-delay: calc(7 * 55ms + 180ms);
+}
+@keyframes mml-dot {
+    0%   { opacity: 1; transform: translateX(-50%) translateY(-48px); }
+    100% { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+</style>
+<h1 id="mm-logo">
+  <span class="mml" style="--d:0">M</span><span class="mml" style="--d:1">a</span><span class="mml" style="--d:2">r</span><span class="mml" style="--d:3">k</span><span class="mml" style="--d:4">e</span><span class="mml" style="--d:5">t</span><span class="mml" style="--d:6">M</span><span class="mml mml-iwrap" style="--d:7">&#x131;<span class="mml-idot"></span></span><span class="mml" style="--d:8">n</span><span class="mml" style="--d:9">d</span>
+</h1>
+""", unsafe_allow_html=True)
     st.markdown("<p style='color:#ffffff;font-size:15px'>Welcome back, <b>{}</b>.</p>".format(display_name), unsafe_allow_html=True)
 with top_right:
     st.markdown("<div style='padding-top:20px'></div>", unsafe_allow_html=True)
