@@ -437,152 +437,184 @@ with top_left:
 <head>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@700&display=swap" rel="stylesheet">
 <style>
-  * { margin:0; padding:0; box-sizing:border-box; }
-  html,body { background:transparent; overflow:visible; }
-  #stage { position:relative; padding-top:46px; }
-  #ghost {
-    font-family:'Inter',sans-serif; font-size:52px; font-weight:700;
-    letter-spacing:-0.03em; line-height:1; white-space:nowrap;
-    opacity:0; pointer-events:none; user-select:none;
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{background:transparent;overflow:visible}
+  #stage{position:relative;padding-top:46px;perspective:600px}
+  #ghost{
+    font-family:'Inter',sans-serif;font-size:52px;font-weight:700;
+    letter-spacing:-0.03em;line-height:1;white-space:nowrap;
+    opacity:0;pointer-events:none;user-select:none
   }
-  .al {
-    font-family:'Inter',sans-serif; font-size:52px; font-weight:700;
-    letter-spacing:-0.03em; line-height:1; color:#fff;
-    position:absolute; white-space:nowrap; opacity:0;
+  .al{
+    font-family:'Inter',sans-serif;font-size:52px;font-weight:700;
+    letter-spacing:-0.03em;line-height:1;color:#fff;
+    position:absolute;white-space:nowrap;opacity:0
   }
-  #dot {
-    position:absolute; background:#76b900; border-radius:50%;
-    pointer-events:none; opacity:0;
-    box-shadow:0 0 8px #76b900,0 0 18px rgba(118,185,0,.35);
+  #dot{
+    position:absolute;background:#76b900;border-radius:50%;
+    pointer-events:none;opacity:0;
+    box-shadow:0 0 8px #76b900,0 0 18px rgba(118,185,0,.4)
   }
 </style>
 </head>
 <body>
 <div id="stage">
-  <div id="ghost">
-    <span id="g0">M</span><span id="g1">a</span><span id="g2">r</span><span id="g3">k</span><span id="g4">e</span><span id="g5">t</span><span id="g6">M</span><span id="g7">&#x131;</span><span id="g8">n</span><span id="g9">d</span>
-  </div>
-  <span id="l0" class="al">M</span><span id="l1" class="al">a</span><span id="l2" class="al">r</span>
-  <span id="l3" class="al">k</span><span id="l4" class="al">e</span><span id="l5" class="al">t</span>
-  <span id="l6" class="al">M</span><span id="l7" class="al">&#x131;</span>
-  <span id="l8" class="al">n</span><span id="l9" class="al">d</span>
+  <div id="ghost"><span id="g0">M</span><span id="g1">a</span><span id="g2">r</span><span id="g3">k</span><span id="g4">e</span><span id="g5">t</span><span id="g6">M</span><span id="g7">&#x131;</span><span id="g8">n</span><span id="g9">d</span></div>
+  <span id="l0" class="al">M</span><span id="l1" class="al">a</span><span id="l2" class="al">r</span><span id="l3" class="al">k</span><span id="l4" class="al">e</span><span id="l5" class="al">t</span><span id="l6" class="al">M</span><span id="l7" class="al">&#x131;</span><span id="l8" class="al">n</span><span id="l9" class="al">d</span>
   <div id="dot"></div>
 </div>
 <script>
 (function(){
-  setTimeout(function(){
-    const stage = document.getElementById('stage');
-    const sr    = stage.getBoundingClientRect();
-    const fp    = Array.from({length:10},(_,i)=>{
-      const r = document.getElementById('g'+i).getBoundingClientRect();
-      return {x:r.left-sr.left, y:r.top-sr.top, w:r.width, h:r.height};
-    });
-    const ls = Array.from({length:10},(_,i)=>document.getElementById('l'+i));
-    const dot = document.getElementById('dot');
+setTimeout(function(){
+  const stage = document.getElementById('stage');
+  const sr    = stage.getBoundingClientRect();
+  const fp    = Array.from({length:10},(_,i)=>{
+    const r=document.getElementById('g'+i).getBoundingClientRect();
+    return {x:r.left-sr.left,y:r.top-sr.top,w:r.width,h:r.height};
+  });
+  const ls  = Array.from({length:10},(_,i)=>document.getElementById('l'+i));
+  const dot = document.getElementById('dot');
 
-    // Place all letters at final positions, hidden
-    ls.forEach((el,i)=>{ el.style.left=fp[i].x+'px'; el.style.top=fp[i].y+'px'; });
+  ls.forEach((el,i)=>{ el.style.left=fp[i].x+'px'; el.style.top=fp[i].y+'px'; });
 
-    const wL = fp[0].x, wR = fp[9].x+fp[9].w;
-    const cx  = wL + (wR-wL)/2 - fp[0].w/2;   // center start x for both Ms
+  const wCx = fp[0].x + (fp[9].x+fp[9].w - fp[0].x)/2 - fp[0].w/2; // center x for M start
 
-    const T1=700, T2=1300, T3=2000;            // phase boundaries (ms)
-    const ARC=38, HOP=750, PAUSE=2200, FADE=220;
-    const CYCLE = HOP+HOP+PAUSE+FADE;
+  // ── Timing constants (ms) ──────────────────────────
+  const D_SPIN   = 900;   // M flips in sideways
+  const D_SPLIT  = 700;   // M splits into two
+  const D_UNFOLD = 1000;  // letters unfold
+  const D_HOP    = 950;   // each dot hop
+  const D_SETTLE = 700;   // dot settles on i
+  const D_WAIT   = 3500;  // wait before restart
+  const D_FADE   = 700;   // fade everything out
+  const D_PAUSE  = 1800;  // blank pause before next loop
 
-    function easeOut(t){ return 1-Math.pow(1-t,3); }
-    function easeIO(t){ return t<.5?2*t*t:-1+(4-2*t)*t; }
+  const PHASES = [
+    {name:'spin',   dur:D_SPIN},
+    {name:'split',  dur:D_SPLIT},
+    {name:'unfold', dur:D_UNFOLD},
+    {name:'hop1',   dur:D_HOP},    // dot: M1 → k
+    {name:'hop2',   dur:D_HOP},    // dot: k  → M2
+    {name:'hop3',   dur:D_HOP},    // dot: M2 → i
+    {name:'settle', dur:D_SETTLE},
+    {name:'wait',   dur:D_WAIT},
+    {name:'fade',   dur:D_FADE},
+    {name:'pause',  dur:D_PAUSE},
+  ];
 
-    function dotPos(idx){
-      return { x:fp[idx].x+fp[idx].w/2, y:fp[idx].y+fp[idx].h*0.08, sz:fp[idx].h*0.13 };
-    }
-    function placeDot(x,y,sz,op){
-      dot.style.width=sz+'px'; dot.style.height=sz+'px';
-      dot.style.left=(x-sz/2)+'px'; dot.style.top=y+'px';
-      dot.style.opacity=op;
-    }
+  function easeOut(t){return 1-Math.pow(1-t,3)}
+  function easeIO(t){return t<.5?2*t*t:-1+(4-2*t)*t}
 
-    let start=null;
-    function frame(ts){
-      if(!start) start=ts;
-      const now=ts-start;
+  function dp(idx){  // dot anchor position for letter idx
+    return {x:fp[idx].x+fp[idx].w*.5, y:fp[idx].y+fp[idx].h*.07, sz:fp[idx].h*.13};
+  }
+  function setDot(x,y,sz,op){
+    dot.style.width=sz+'px'; dot.style.height=sz+'px';
+    dot.style.left=(x-sz/2)+'px'; dot.style.top=y+'px'; dot.style.opacity=op;
+  }
 
-      /* ── Phase 1: single M spins in at center (0→T1) ── */
-      if(now<=T1){
-        const t=now/T1, et=easeOut(t);
-        ls[0].style.left = cx+'px';
-        ls[0].style.opacity = Math.min(t*2,1);
-        ls[0].style.transform = `rotate(${(1-et)*360}deg) scale(${.3+et*.7})`;
+  function reset(){
+    ls.forEach(el=>{ el.style.opacity='0'; el.style.transform=''; });
+    ls.forEach((el,i)=>{ el.style.left=fp[i].x+'px'; });
+    ls[0].style.left=wCx+'px';
+    dot.style.opacity='0';
+  }
+
+  let pi=0, ps=null;
+
+  function frame(ts){
+    if(!ps) ps=ts;
+    const el = ts-ps;
+    const ph = PHASES[pi];
+    const t  = Math.min(el/ph.dur, 1);
+    const et = easeOut(t);
+    const ARC = 36;
+
+    switch(ph.name){
+
+      case 'spin':
+        // M flips in sideways: rotateY 90→0, scale .5→1, fade in
+        ls[0].style.left    = wCx+'px';
+        ls[0].style.opacity = Math.min(t*2.5,1).toFixed(3);
+        ls[0].style.transform = `perspective(400px) rotateY(${(1-et)*90}deg) scale(${.5+et*.5})`;
         ls[6].style.opacity='0';
+        break;
 
-      /* ── Phase 2: M splits to both final positions (T1→T2) ── */
-      } else if(now<=T2){
-        const t=(now-T1)/(T2-T1), et=easeOut(t);
-        // M1 slides left to final
+      case 'split':
+        // M1 slides to final left pos; M2 fades+scales in from center
         ls[0].style.transform='';
-        ls[0].style.left=(cx+(fp[0].x-cx)*et)+'px';
+        ls[0].style.left=(wCx+(fp[0].x-wCx)*et)+'px';
         ls[0].style.opacity='1';
-        // M2 fades+scales in and slides right to final
-        ls[6].style.left=(cx+(fp[6].x-cx)*et)+'px';
+        ls[6].style.left=(wCx+(fp[6].x-wCx)*et)+'px';
         ls[6].style.opacity=Math.min(t*2,1).toFixed(3);
         ls[6].style.transform=`scale(${.4+et*.6})`;
+        break;
 
-      /* ── Phase 3: letters unfold from each M (T2→T3) ── */
-      } else if(now<=T3){
-        const el=now-T2, dur=190, gap=75;
+      case 'unfold':
         ls[0].style.left=fp[0].x+'px'; ls[0].style.transform='';
         ls[6].style.left=fp[6].x+'px'; ls[6].style.transform=''; ls[6].style.opacity='1';
-        // "arket" from M1
         [1,2,3,4,5].forEach((idx,ord)=>{
-          const t=Math.max(0,Math.min((el-ord*gap)/dur,1));
-          const et=easeOut(t);
-          ls[idx].style.opacity=et.toFixed(3);
-          ls[idx].style.transform=`scaleX(${et})`;
+          const lt=Math.max(0,Math.min((el-ord*90)/220,1)), e2=easeOut(lt);
+          ls[idx].style.opacity=e2.toFixed(3);
+          ls[idx].style.transform=`scaleX(${e2})`;
           ls[idx].style.transformOrigin='left center';
         });
-        // "ind" from M2
         [7,8,9].forEach((idx,ord)=>{
-          const t=Math.max(0,Math.min((el-ord*gap)/dur,1));
-          const et=easeOut(t);
-          ls[idx].style.opacity=et.toFixed(3);
-          ls[idx].style.transform=`scaleX(${et})`;
+          const lt=Math.max(0,Math.min((el-ord*90)/220,1)), e2=easeOut(lt);
+          ls[idx].style.opacity=e2.toFixed(3);
+          ls[idx].style.transform=`scaleX(${e2})`;
           ls[idx].style.transformOrigin='left center';
         });
+        break;
 
-      /* ── Phase 4: dot hops M1→M2→i, loops (T3→∞) ── */
-      } else {
-        ls.forEach((el,i)=>{
-          el.style.opacity='1'; el.style.transform='';
-          el.style.left=fp[i].x+'px';
-        });
-        const ct=(now-T3)%CYCLE;
+      case 'hop1':{ // M1(0) → k(3)
+        ls.forEach((e2,i)=>{ e2.style.opacity='1'; e2.style.transform=''; e2.style.left=fp[i].x+'px'; });
+        const A=dp(0),B=dp(3),eit=easeIO(t);
+        setDot(A.x+(B.x-A.x)*eit, A.y+(B.y-A.y)*eit-ARC*Math.sin(eit*Math.PI), A.sz+(B.sz-A.sz)*eit, '1');
+        break;}
 
-        if(ct<HOP){
-          const t=ct/HOP, et=easeIO(t);
-          const A=dotPos(0), B=dotPos(6);
-          placeDot(A.x+(B.x-A.x)*et, A.y+(B.y-A.y)*et-ARC*Math.sin(et*Math.PI),
-                   A.sz+(B.sz-A.sz)*et, '1');
-        } else if(ct<HOP*2){
-          const t=(ct-HOP)/HOP, et=easeIO(t);
-          const A=dotPos(6), B=dotPos(7);
-          placeDot(A.x+(B.x-A.x)*et, A.y+(B.y-A.y)*et-ARC*Math.sin(et*Math.PI),
-                   A.sz+(B.sz-A.sz)*et, '1');
-        } else if(ct<HOP*2+PAUSE){
-          const t=(ct-HOP*2)/PAUSE;
-          const p=dotPos(7);
-          const bob=Math.abs(Math.sin(t*Math.PI*2.5))*7*Math.max(0,1-t*2.5);
-          placeDot(p.x, p.y-bob, p.sz, '1');
-        } else {
-          const t=(ct-HOP*2-PAUSE)/FADE;
-          const p=dotPos(7);
-          placeDot(p.x, p.y, p.sz, (1-Math.min(t,1)).toFixed(3));
-        }
-      }
+      case 'hop2':{ // k(3) → M2(6)
+        const A=dp(3),B=dp(6),eit=easeIO(t);
+        setDot(A.x+(B.x-A.x)*eit, A.y+(B.y-A.y)*eit-ARC*Math.sin(eit*Math.PI), A.sz+(B.sz-A.sz)*eit, '1');
+        break;}
 
-      requestAnimationFrame(frame);
+      case 'hop3':{ // M2(6) → i(7)
+        const A=dp(6),B=dp(7),eit=easeIO(t);
+        setDot(A.x+(B.x-A.x)*eit, A.y+(B.y-A.y)*eit-ARC*Math.sin(eit*Math.PI), A.sz+(B.sz-A.sz)*eit, '1');
+        break;}
+
+      case 'settle':{
+        const p=dp(7);
+        const bob=Math.abs(Math.sin(t*Math.PI*2.5))*7*Math.max(0,1-t*2.5);
+        setDot(p.x, p.y-bob, p.sz, '1');
+        break;}
+
+      case 'wait':
+        setDot(dp(7).x, dp(7).y, dp(7).sz, '1');
+        break;
+
+      case 'fade':{
+        const op=(1-et).toFixed(3);
+        ls.forEach(el=>{ el.style.opacity=op; });
+        dot.style.opacity=op;
+        break;}
+
+      case 'pause':
+        ls.forEach(el=>{ el.style.opacity='0'; }); dot.style.opacity='0';
+        break;
+    }
+
+    if(t>=1){
+      pi=(pi+1)%PHASES.length;
+      ps=ts;
+      if(pi===0) reset();
     }
     requestAnimationFrame(frame);
-  }, 450);
+  }
+
+  reset();
+  requestAnimationFrame(frame);
+}, 450);
 })();
 </script>
 </body>
