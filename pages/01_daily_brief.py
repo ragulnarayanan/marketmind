@@ -470,10 +470,10 @@ if "audio_brief" in st.session_state:
     </script>
     """, height=175)
 
-# ── Section 2 — Today's Movers ────────────────────────────────────────────────
+# ── Section 2 — Portfolio Movers ─────────────────────────────────────────────
 
 if holdings:
-    st.markdown(section_header("Today's Movers"), unsafe_allow_html=True)
+    st.markdown(section_header("Portfolio Movers"), unsafe_allow_html=True)
     sorted_holdings = sorted(holdings, key=lambda x: abs(x.get("daily_pct", 0)), reverse=True)
     cols = st.columns(min(len(sorted_holdings), 5))
     for i, h in enumerate(sorted_holdings):
