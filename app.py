@@ -457,86 +457,203 @@ _components.html("""
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { background: transparent; overflow: hidden; }
-  canvas { display: block; width: 100%; height: 100px; }
+  #wrap {
+    background: #0a0a0a;
+    border: 1px solid #1a1a1a;
+    border-radius: 12px;
+    padding: 14px 18px 10px;
+    position: relative;
+  }
+  #topRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  #chartTitle {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    color: #52525b;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  #priceLabel {
+    font-family: 'Inter', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+  canvas { display: block; width: 100%; height: 160px; }
 </style>
-<canvas id="chart"></canvas>
+
+<div id="wrap">
+  <div id="topRow">
+    <span id="chartTitle">MarketMind · Simulated Live Feed</span>
+    <span id="priceLabel">—</span>
+  </div>
+  <canvas id="chart"></canvas>
+</div>
+
 <script>
-  const canvas = document.getElementById('chart');
-  const ctx    = canvas.getContext('2d');
+  const canvas    = document.getElementById('chart');
+  const ctx       = canvas.getContext('2d');
+  const priceEl   = document.getElementById('priceLabel');
 
   function resize() {
-    canvas.width  = canvas.offsetWidth;
-    canvas.height = canvas.offsetHeight;
+    canvas.width  = canvas.offsetWidth  * window.devicePixelRatio;
+    canvas.height = canvas.offsetHeight * window.devicePixelRatio;
+    ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
   }
   resize();
-  window.addEventListener('resize', resize);
+  window.addEventListener('resize', () => { resize(); });
 
-  const POINTS   = 120;
-  const SPEED    = 1.2;
-  let   prices   = [];
-  let   offset   = 0;
+  const POINTS = 100;
+  const SPEED  = 0.25;   // pixels per frame — slow scroll
+  const MEAN   = 150;    // mean-revert target
+  const VOL    = 2.2;    // volatility per new bar
 
-  // Seed a realistic-looking price walk
-  let p = 50;
-  for (let i = 0; i < POINTS * 2; i++) {
-    p += (Math.random() - 0.49) * 3;
-    p  = Math.max(10, Math.min(90, p));
+  let prices = [];
+  let offset = 0;
+
+  // Seed with a mean-reverting walk
+  let p = MEAN;
+  for (let i = 0; i < POINTS + 2; i++) {
+    p += (MEAN - p) * 0.03 + (Math.random() - 0.5) * VOL * 2;
+    p  = Math.max(50, Math.min(250, p));
     prices.push(p);
   }
 
+  function addBar() {
+    let last = prices[prices.length - 1];
+    last += (MEAN - last) * 0.03 + (Math.random() - 0.5) * VOL * 2;
+    last  = Math.max(50, Math.min(250, last));
+    prices.push(last);
+    if (prices.length > POINTS + 20) prices.shift();
+  }
+
+  function smoothPath(pts, toX, toY) {
+    ctx.beginPath();
+    ctx.moveTo(toX(0), toY(pts[0]));
+    for (let i = 0; i < pts.length - 1; i++) {
+      const cx = (toX(i) + toX(i + 1)) / 2;
+      ctx.bezierCurveTo(cx, toY(pts[i]), cx, toY(pts[i + 1]), toX(i + 1), toY(pts[i + 1]));
+    }
+  }
+
   function draw() {
-    const W = canvas.width;
-    const H = canvas.height;
+    const W = canvas.offsetWidth;
+    const H = canvas.offsetHeight;
     ctx.clearRect(0, 0, W, H);
 
-    // Advance price walk
     offset += SPEED;
     if (offset >= 1) {
       offset -= 1;
-      prices.shift();
-      let last = prices[prices.length - 1];
-      last += (Math.random() - 0.49) * 3;
-      last  = Math.max(10, Math.min(90, last));
-      prices.push(last);
+      addBar();
     }
 
-    const visible = prices.slice(-POINTS);
-    const min     = Math.min(...visible) - 4;
-    const max     = Math.max(...visible) + 4;
-    const range   = max - min || 1;
+    const visible = prices.slice(-(POINTS + 1));
+    const vals    = visible;
+    const minV    = Math.min(...vals) - 8;
+    const maxV    = Math.max(...vals) + 8;
+    const range   = maxV - minV || 1;
 
-    const toY = v => H - ((v - min) / range) * (H * 0.85) - H * 0.05;
-    const toX = i => ((i - offset) / (POINTS - 1)) * W;
+    const PAD_L = 8, PAD_R = 52, PAD_T = 8, PAD_B = 24;
+    const cW    = W - PAD_L - PAD_R;
+    const cH    = H - PAD_T - PAD_B;
 
-    // Draw segment by segment, green if up, red if down
-    for (let i = 1; i < visible.length; i++) {
-      const x1 = toX(i - 1), y1 = toY(visible[i - 1]);
-      const x2 = toX(i),     y2 = toY(visible[i]);
+    const toX = i  => PAD_L + ((i - offset) / (POINTS - 1)) * cW;
+    const toY = v  => PAD_T + cH - ((v - minV) / range) * cH;
+
+    // ── Grid lines ──────────────────────────────────────────────
+    const gridLines = 4;
+    ctx.setLineDash([3, 5]);
+    ctx.strokeStyle = '#1a1a1a';
+    ctx.lineWidth   = 1;
+    for (let g = 0; g <= gridLines; g++) {
+      const gy = PAD_T + (g / gridLines) * cH;
       ctx.beginPath();
-      ctx.moveTo(x1, y1);
-      ctx.lineTo(x2, y2);
-      ctx.strokeStyle = visible[i] >= visible[i - 1] ? '#76b900' : '#e53e3e';
-      ctx.lineWidth   = 2;
-      ctx.lineJoin    = 'round';
+      ctx.moveTo(PAD_L, gy);
+      ctx.lineTo(W - PAD_R, gy);
       ctx.stroke();
+      // Y-axis label
+      const price = maxV - (g / gridLines) * range;
+      ctx.font      = '10px monospace';
+      ctx.fillStyle = '#3f3f46';
+      ctx.textAlign = 'left';
+      ctx.fillText(price.toFixed(0), W - PAD_R + 6, gy + 4);
     }
+    ctx.setLineDash([]);
 
-    // Glow dot at tip
+    // Determine overall direction (first vs last visible point)
+    const firstP = visible[0];
+    const lastP  = visible[visible.length - 1];
+    const rising = lastP >= firstP;
+    const lineColor = rising ? '#76b900' : '#e53e3e';
+    const fillColor = rising ? 'rgba(118,185,0,' : 'rgba(229,62,62,';
+
+    // ── Gradient fill under curve ────────────────────────────────
+    const grad = ctx.createLinearGradient(0, PAD_T, 0, PAD_T + cH);
+    grad.addColorStop(0, fillColor + '0.18)');
+    grad.addColorStop(1, fillColor + '0.0)');
+
+    smoothPath(visible, toX, toY);
+    ctx.lineTo(toX(visible.length - 1), PAD_T + cH);
+    ctx.lineTo(toX(0), PAD_T + cH);
+    ctx.closePath();
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    // ── Price line ───────────────────────────────────────────────
+    smoothPath(visible, toX, toY);
+    ctx.strokeStyle = lineColor;
+    ctx.lineWidth   = 2;
+    ctx.lineJoin    = 'round';
+    ctx.stroke();
+
+    // ── Glowing live dot ─────────────────────────────────────────
     const lx = toX(visible.length - 1);
-    const ly = toY(visible[visible.length - 1]);
-    const rising = visible[visible.length - 1] >= visible[visible.length - 2];
-    const dotColor = rising ? '#76b900' : '#e53e3e';
+    const ly = toY(lastP);
+    ctx.shadowColor = lineColor;
+    ctx.shadowBlur  = 12;
     ctx.beginPath();
     ctx.arc(lx, ly, 4, 0, Math.PI * 2);
-    ctx.fillStyle = dotColor;
-    ctx.shadowColor = dotColor;
-    ctx.shadowBlur  = 10;
+    ctx.fillStyle = lineColor;
     ctx.fill();
     ctx.shadowBlur  = 0;
+
+    // ── Horizontal dashed line at live price ─────────────────────
+    ctx.setLineDash([4, 6]);
+    ctx.strokeStyle = lineColor + '66';
+    ctx.lineWidth   = 1;
+    ctx.beginPath();
+    ctx.moveTo(lx, ly);
+    ctx.lineTo(W - PAD_R, ly);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // ── Live price tag on right axis ─────────────────────────────
+    const tagH = 16, tagW = 44;
+    const tagX = W - PAD_R + 2;
+    const tagY = ly - tagH / 2;
+    ctx.fillStyle   = lineColor;
+    ctx.beginPath();
+    ctx.roundRect(tagX, tagY, tagW, tagH, 3);
+    ctx.fill();
+    ctx.font      = 'bold 10px monospace';
+    ctx.fillStyle = '#000000';
+    ctx.textAlign = 'center';
+    ctx.fillText(lastP.toFixed(2), tagX + tagW / 2, tagY + 11);
+
+    // ── Update price label above chart ───────────────────────────
+    const chg    = lastP - firstP;
+    const chgPct = ((chg / firstP) * 100).toFixed(2);
+    priceEl.textContent = lastP.toFixed(2) + '  ' + (chg >= 0 ? '+' : '') + chgPct + '%';
+    priceEl.style.color = rising ? '#76b900' : '#e53e3e';
 
     requestAnimationFrame(draw);
   }
 
   draw();
 </script>
-""", height=110)
+""", height=240)
