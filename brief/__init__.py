@@ -14,7 +14,6 @@ from brief.portfolio_pnl import compute_portfolio_snapshot
 from data.firestore_client import (
     get_portfolio,
     get_todays_brief,
-    save_todays_audio,
     store_brief,
 )
 from data.news_fetcher import fetch_and_store_ticker_news, fetch_macro_news
@@ -158,13 +157,4 @@ async def generate_daily_brief(uid: str) -> dict:
     }
 
     store_brief(uid, brief)
-
-    # Generate and cache audio immediately after storing the brief
-    try:
-        from brief.audio_brief import generate_audio_brief
-        audio_bytes = await asyncio.to_thread(generate_audio_brief, brief)
-        save_todays_audio(uid, audio_bytes)
-    except Exception:
-        pass  # Audio failure must not block the brief being returned
-
     return brief

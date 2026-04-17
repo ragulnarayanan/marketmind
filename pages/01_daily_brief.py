@@ -14,6 +14,7 @@ from data.firestore_client import (
     delete_todays_brief,
     get_todays_audio,
     get_todays_brief,
+    save_todays_audio,
 )
 from utils.nav import render_nav
 from utils.ui_components import (
@@ -244,11 +245,20 @@ col_btn, col_spacer = st.columns([1, 4])
 with col_btn:
     if st.button("▶  Listen to Brief", use_container_width=True):
         if "audio_brief" not in st.session_state:
+            # Check GCS cache first
             cached = get_todays_audio(uid)
             if cached:
                 st.session_state["audio_brief"] = cached
             else:
-                st.warning("Audio is still being prepared — try again in a moment.")
+                # Generate fresh, then cache to GCS
+                with st.spinner("Generating audio brief..."):
+                    try:
+                        from brief.audio_brief import generate_audio_brief
+                        audio_bytes = generate_audio_brief(brief)
+                        save_todays_audio(uid, audio_bytes)
+                        st.session_state["audio_brief"] = audio_bytes
+                    except Exception as e:
+                        st.error(f"Audio generation failed: {e}")
 
 if "audio_brief" in st.session_state:
     audio_b64 = base64.b64encode(st.session_state["audio_brief"]).decode()
