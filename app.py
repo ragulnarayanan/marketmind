@@ -433,7 +433,7 @@ if not st.session_state.get("uid"):
 </script></body></html>""", height=112)
 
         st.markdown(
-            "<p style='color:#a1a1aa;font-size:15px;margin:4px 0 28px'>AI-powered stock research and daily portfolio brief.</p>",
+            "<p style='color:#a1a1aa;font-size:20px;margin:4px 0 32px'>AI-powered stock research and daily portfolio brief.</p>",
             unsafe_allow_html=True,
         )
         for title, desc in [
@@ -442,10 +442,10 @@ if not st.session_state.get("uid"):
             ("Buy / Wait / Sell","Analyst-style signals with rationale and price levels to watch"),
         ]:
             st.markdown(
-                f"<div style='display:flex;gap:14px;margin-bottom:20px;align-items:flex-start'>"
-                f"<div style='width:3px;min-width:3px;height:36px;background:#76b900;border-radius:2px;margin-top:2px'></div>"
-                f"<div><div style='color:#ffffff;font-weight:600;font-size:14px;margin-bottom:3px'>{title}</div>"
-                f"<div style='color:#6b7280;font-size:13px;line-height:1.5'>{desc}</div></div></div>",
+                f"<div style='display:flex;gap:16px;margin-bottom:28px;align-items:flex-start'>"
+                f"<div style='width:3px;min-width:3px;height:48px;background:#76b900;border-radius:2px;margin-top:3px'></div>"
+                f"<div><div style='color:#ffffff;font-weight:600;font-size:20px;margin-bottom:4px'>{title}</div>"
+                f"<div style='color:#6b7280;font-size:16px;line-height:1.5'>{desc}</div></div></div>",
                 unsafe_allow_html=True,
             )
 
@@ -716,7 +716,7 @@ setTimeout(function(){
 </body>
 </html>
 """, height=112)
-    st.markdown("<p style='color:#ffffff;font-size:36px'>Welcome back, <b>{}</b>.</p>".format(display_name), unsafe_allow_html=True)
+    st.markdown("<p style='color:#ffffff;font-size:15px'>Welcome back, <b>{}</b>.</p>".format(display_name), unsafe_allow_html=True)
 with top_right:
     st.markdown("<div style='padding-top:20px'></div>", unsafe_allow_html=True)
     if st.button("Sign Out", key="home_sign_out"):
@@ -728,14 +728,14 @@ st.divider()
 
 col1, col2 = st.columns(2)
 with col1:
-    st.markdown("<h3 style='font-size:44px;color:#ffffff;font-weight:700;margin-bottom:10px'>Daily Brief</h3>", unsafe_allow_html=True)
-    st.markdown("<p style='color:#ffffff;font-size:32px;line-height:1.6'>Get your personalized portfolio P&L, news summaries, macro alerts, and buy/wait signals.</p>", unsafe_allow_html=True)
+    st.markdown("### Daily Brief")
+    st.markdown("<p style='color:#ffffff'>Get your personalized portfolio P&L, news summaries, macro alerts, and buy/wait signals.</p>", unsafe_allow_html=True)
     if st.button("Open Daily Brief", key="home_brief", type="primary"):
         st.switch_page("pages/01_daily_brief.py")
 
 with col2:
-    st.markdown("<h3 style='font-size:44px;color:#ffffff;font-weight:700;margin-bottom:10px'>Stock Research</h3>", unsafe_allow_html=True)
-    st.markdown("<p style='color:#ffffff;font-size:32px;line-height:1.6'>Enter any ticker for a five-agent deep dive: news, SEC filings, financials, and a Buy/Hold/Sell verdict.</p>", unsafe_allow_html=True)
+    st.markdown("### Stock Research")
+    st.markdown("<p style='color:#ffffff'>Enter any ticker for a five-agent deep dive: news, SEC filings, financials, and a Buy/Hold/Sell verdict.</p>", unsafe_allow_html=True)
     if st.button("Open Research", key="home_research", type="primary"):
         st.switch_page("pages/02_stock_research.py")
 
