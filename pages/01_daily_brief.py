@@ -128,7 +128,9 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-st.title("Daily Brief")
+display_name = st.session_state.get("display_name", "")
+_first_name  = display_name.split()[0] if display_name else ""
+st.title(f"{_first_name}'s Daily Brief" if _first_name else "Daily Brief")
 
 # ── Daily market quote ────────────────────────────────────────────────────────
 from datetime import date as _date
