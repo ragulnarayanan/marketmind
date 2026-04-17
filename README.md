@@ -10,7 +10,7 @@ Most retail investors own a portfolio but have no real edge on it. They bought t
 
 ## What MarketMind does
 
-Every morning, MarketMind reads the news, scores it against *your* portfolio, and hands you a brief that sounds like a Seeking Alpha analyst wrote it — what moved, why, what it means for *your* stocks, and what to watch today. Listen to it like a podcast on your commute, or read it in 2 minutes. Source links are there when you want to go deeper.
+Every morning, MarketMind reads the news, scores it against *your* portfolio, and hands you a brief in the voice of a financial podcast host — what moved, why, what it means for *your* stocks, and what to watch today. Listen to it like a podcast on your commute, or read it in 2 minutes. Source links are there when you want to go deeper.
 
 **Who it's for:** Someone who takes their investments seriously but has a job, a life, and no Bloomberg terminal.
 

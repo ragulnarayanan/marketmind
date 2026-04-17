@@ -78,6 +78,34 @@ def delete_todays_brief(uid: str) -> None:
     ).delete()
 
 
+def get_todays_audio(uid: str) -> bytes | None:
+    doc = (
+        db.collection("users")
+        .document(uid)
+        .collection("audio_briefs")
+        .document(str(date.today()))
+        .get()
+    )
+    if not doc.exists:
+        return None
+    data = doc.to_dict()
+    raw = data.get("mp3")
+    # Firestore returns bytes blobs as bytes directly
+    return bytes(raw) if raw is not None else None
+
+
+def save_todays_audio(uid: str, audio_bytes: bytes) -> None:
+    db.collection("users").document(uid).collection("audio_briefs").document(
+        str(date.today())
+    ).set({"mp3": audio_bytes})
+
+
+def delete_todays_audio(uid: str) -> None:
+    db.collection("users").document(uid).collection("audio_briefs").document(
+        str(date.today())
+    ).delete()
+
+
 def get_brief_history(uid: str, days: int = 30) -> list[dict]:
     docs = (
         db.collection("users")

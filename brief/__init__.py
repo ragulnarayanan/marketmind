@@ -14,6 +14,7 @@ from brief.portfolio_pnl import compute_portfolio_snapshot
 from data.firestore_client import (
     get_portfolio,
     get_todays_brief,
+    save_todays_audio,
     store_brief,
 )
 from data.news_fetcher import fetch_and_store_ticker_news, fetch_macro_news
@@ -87,42 +88,62 @@ async def generate_daily_brief(uid: str) -> dict:
         ]),
     )
 
-    # Collect source links — separate wider scroll per ticker (top 50),
-    # filtered in Python for has_url=True. This avoids missing URLs when
-    # the top-10 summary articles happen to all be Finnhub (no URL).
-    all_sources = []
+    # Collect sources per ticker.
+    # Priority: articles actually fed to the LLM (news_by_ticker) with valid URLs.
+    # Supplemented via a Qdrant scroll to reach at least 6 per ticker.
+    sources_by_ticker: dict[str, list] = {}
     for ticker in tickers:
-        source_results, _ = client.scroll(
-            "news_articles",
-            scroll_filter=Filter(must=[
-                FieldCondition(key="tickers", match=MatchValue(value=ticker)),
-                FieldCondition(key="has_url", match=MatchValue(value=True)),
-            ]),
-            limit=15,
-            with_payload=True,
-            order_by=OrderBy(key="published_at", direction=Direction.DESC),
-        )
-        for r in source_results:
-            a   = r.payload
-            url = a.get("url") or ""
-            if not a.get("has_url") or not url or not _is_valid_url(url):
-                continue
-            all_sources.append({
-                "headline":    a.get("headline", ""),
-                "url":         url,
-                "source_name": a.get("source_name", ""),
-                "domain":      _extract_domain(url),
-                "published_at": a.get("published_date", ""),
-                "ticker":      ticker,
-            })
+        seen_urls: set[str] = set()
+        ticker_sources: list[dict] = []
 
-    seen_urls: set[str] = set()
-    unique_sources = []
-    for s in all_sources:
-        if s["url"] not in seen_urls:
-            seen_urls.add(s["url"])
-            unique_sources.append(s)
-    unique_sources = unique_sources[:15]
+        # 1 — articles that were used to generate the brief
+        for a in news_by_ticker.get(ticker, []):
+            url = a.get("url") or ""
+            if url and _is_valid_url(url) and url not in seen_urls:
+                seen_urls.add(url)
+                ticker_sources.append({
+                    "headline":    a.get("headline", ""),
+                    "url":         url,
+                    "source_name": a.get("source_name", ""),
+                    "domain":      _extract_domain(url),
+                    "published_at": a.get("published_date", ""),
+                })
+
+        # 2 — supplement until we have at least 6
+        if len(ticker_sources) < 6:
+            extra, _ = client.scroll(
+                "news_articles",
+                scroll_filter=Filter(must=[
+                    FieldCondition(key="tickers", match=MatchValue(value=ticker)),
+                    FieldCondition(key="has_url",  match=MatchValue(value=True)),
+                ]),
+                limit=20,
+                with_payload=True,
+                order_by=OrderBy(key="published_at", direction=Direction.DESC),
+            )
+            for r in extra:
+                if len(ticker_sources) >= 8:
+                    break
+                a   = r.payload
+                url = a.get("url") or ""
+                if url and _is_valid_url(url) and url not in seen_urls:
+                    seen_urls.add(url)
+                    ticker_sources.append({
+                        "headline":    a.get("headline", ""),
+                        "url":         url,
+                        "source_name": a.get("source_name", ""),
+                        "domain":      _extract_domain(url),
+                        "published_at": a.get("published_date", ""),
+                    })
+
+        sources_by_ticker[ticker] = ticker_sources
+
+    # Flat list kept for backward compatibility
+    unique_sources = [
+        {**s, "ticker": ticker}
+        for ticker, srcs in sources_by_ticker.items()
+        for s in srcs
+    ]
 
     signals = {s["ticker"]: s for s in signals_list}
 
@@ -132,8 +153,18 @@ async def generate_daily_brief(uid: str) -> dict:
         "portfolio_summary":  portfolio_summary,
         "macro_alerts":       macro_alerts,
         "signals":            signals,
-        "sources":            unique_sources,
+        "sources_by_ticker":  sources_by_ticker,
+        "sources":            unique_sources,   # flat list — backward compat
     }
 
     store_brief(uid, brief)
+
+    # Generate and cache audio immediately after storing the brief
+    try:
+        from brief.audio_brief import generate_audio_brief
+        audio_bytes = await asyncio.to_thread(generate_audio_brief, brief)
+        save_todays_audio(uid, audio_bytes)
+    except Exception:
+        pass  # Audio failure must not block the brief being returned
+
     return brief

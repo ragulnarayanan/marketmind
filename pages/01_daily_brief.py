@@ -9,7 +9,12 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 from brief import generate_daily_brief
-from data.firestore_client import delete_todays_brief, get_todays_brief
+from data.firestore_client import (
+    delete_todays_audio,
+    delete_todays_brief,
+    get_todays_audio,
+    get_todays_brief,
+)
 from utils.nav import render_nav
 from utils.ui_components import (
     macro_card,
@@ -194,6 +199,8 @@ col_refresh, _ = st.columns([1, 5])
 with col_refresh:
     if st.button("Generate Today's Brief", type="primary"):
         delete_todays_brief(uid)   # clear cache so new portfolio stocks are included
+        delete_todays_audio(uid)   # clear audio cache so it regenerates with new brief
+        st.session_state.pop("audio_brief", None)
         brief = None
 
 if brief is None:
@@ -202,6 +209,12 @@ if brief is None:
         brief = asyncio.run(generate_daily_brief(uid))
         st.write("Brief complete.")
         status.update(label="Daily brief ready!", state="complete")
+
+# Pre-load audio from Firestore cache if not already in session
+if "audio_brief" not in st.session_state:
+    cached_audio = get_todays_audio(uid)
+    if cached_audio:
+        st.session_state["audio_brief"] = cached_audio
 
 if brief.get("empty"):
     st.info(brief["message"])
@@ -230,13 +243,12 @@ st.markdown("<br>", unsafe_allow_html=True)
 col_btn, col_spacer = st.columns([1, 4])
 with col_btn:
     if st.button("▶  Listen to Brief", use_container_width=True):
-        with st.spinner("Generating audio brief..."):
-            try:
-                from brief.audio_brief import generate_audio_brief
-                audio_bytes = generate_audio_brief(brief)
-                st.session_state["audio_brief"] = audio_bytes
-            except Exception as e:
-                st.error(f"Audio generation failed: {e}")
+        if "audio_brief" not in st.session_state:
+            cached = get_todays_audio(uid)
+            if cached:
+                st.session_state["audio_brief"] = cached
+            else:
+                st.warning("Audio is still being prepared — try again in a moment.")
 
 if "audio_brief" in st.session_state:
     audio_b64 = base64.b64encode(st.session_state["audio_brief"]).decode()
@@ -560,27 +572,60 @@ st.markdown("---")
 # ── Section 5 — Source Links ─────────────────────────────────────────────────
 
 st.markdown(section_header("Further Reading"), unsafe_allow_html=True)
-sources = brief.get("sources", [])
-if not sources:
+
+# Prefer per-ticker dict; fall back to grouping the flat list for old cached briefs
+sources_by_ticker = brief.get("sources_by_ticker") or {}
+if not sources_by_ticker:
+    for s in brief.get("sources", []):
+        sources_by_ticker.setdefault(s.get("ticker", ""), []).append(s)
+
+if not sources_by_ticker:
     st.caption("No source links available.")
 else:
-    for s in sources:
-        ticker   = s.get("ticker", "")
-        headline = s.get("headline", "")[:80]
-        url      = s.get("url", "")
-        domain   = s.get("domain", "")
-        pub      = s.get("published_at", "")
+    def _article_row(a: dict) -> str:
+        headline = a.get("headline", "")[:100]
+        url      = a.get("url", "")
+        domain   = a.get("domain", "")
+        pub      = a.get("published_at", "")
+        return (
+            f"<div style='padding:8px 0;border-bottom:1px solid #1a1a1a;last-child:border:none'>"
+            f"<a href='{url}' target='_blank' style='color:#ffffff;font-size:13px;"
+            f"font-family:Inter,sans-serif;text-decoration:none;line-height:1.5'>{headline}</a><br>"
+            f"<span style='color:#52525b;font-size:11px;font-family:Inter,sans-serif'>"
+            f"{domain}&nbsp;·&nbsp;{pub}</span>"
+            f"</div>"
+        )
+
+    for ticker, articles in sources_by_ticker.items():
+        if not articles:
+            continue
+        visible   = articles[:4]
+        remaining = articles[4:]
+
+        visible_html = "".join(_article_row(a) for a in visible)
         st.markdown(
-            f"<div style='margin-bottom:6px'>"
-            f"<span style='font-size:11px;color:#76b900;font-weight:600;"
-            f"font-family:Inter,sans-serif'>{ticker}</span> "
-            f"<a href='{url}' style='color:#ffffff;font-size:13px;"
-            f"font-family:Inter,sans-serif'>{headline}...</a> "
-            f"<span style='color:#52525b;font-size:11px;"
-            f"font-family:Inter,sans-serif'>· {domain} · {pub}</span>"
+            f"<div style='background:#0a0a0a;border:1px solid #1a1a1a;border-radius:10px;"
+            f"padding:12px 18px;margin-bottom:6px'>"
+            f"<div style='color:#76b900;font-size:11px;font-weight:700;"
+            f"font-family:Inter,sans-serif;letter-spacing:0.06em;margin-bottom:6px'>{ticker}</div>"
+            f"{visible_html}"
             f"</div>",
             unsafe_allow_html=True,
         )
+        if remaining:
+            with st.expander(f"+ {len(remaining)} more articles for {ticker}"):
+                for a in remaining:
+                    headline = a.get("headline", "")[:100]
+                    url      = a.get("url", "")
+                    domain   = a.get("domain", "")
+                    pub      = a.get("published_at", "")
+                    st.markdown(
+                        f"[{headline}]({url})  \n"
+                        f"<span style='color:#52525b;font-size:11px;"
+                        f"font-family:Inter,sans-serif'>{domain}&nbsp;·&nbsp;{pub}</span>",
+                        unsafe_allow_html=True,
+                    )
+                    st.divider()
 
 generated_at = brief.get("generated_at", "")
 if generated_at:
