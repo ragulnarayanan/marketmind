@@ -66,9 +66,12 @@ def render_nav() -> None:
     with st.sidebar:
         st.markdown(
             "<div style='padding:20px 12px 8px'>"
-            "<span style='color:#76b900;font-size:20px;font-weight:700;"
+            "<span style='color:#ffffff;font-size:20px;font-weight:700;"
             "font-family:Inter,sans-serif;letter-spacing:-0.02em'>"
-            "MarketMind</span></div>",
+            "MarketM<span style='position:relative;display:inline-block'>&#x131;"
+            "<span style='position:absolute;left:50%;top:0.08em;transform:translateX(-50%);"
+            "width:0.2em;height:0.2em;background:#76b900;border-radius:50%;display:block'>"
+            "</span></span>nd</span></div>",
             unsafe_allow_html=True,
         )
 
