@@ -44,22 +44,29 @@ def compute_portfolio_snapshot(holdings: list[dict]) -> dict:
         total_pnl     = round(market_val - cost_basis, 2)
         total_pnl_pct = round(total_pnl / cost_basis * 100, 2) if cost_basis else 0.0
 
+        prev_market_val = round(prev * float(h["qty"]), 2)
         results.append({
-            "ticker":        tk,
-            "qty":           float(h["qty"]),
-            "avg_cost":      round(float(h["avg_cost"]), 2),
-            "current_price": curr,
-            "daily_pct":     daily_pct,
-            "market_value":  market_val,
-            "total_pnl":     total_pnl,
-            "total_pnl_pct": total_pnl_pct,
+            "ticker":           tk,
+            "qty":              float(h["qty"]),
+            "avg_cost":         round(float(h["avg_cost"]), 2),
+            "current_price":    curr,
+            "daily_pct":        daily_pct,
+            "market_value":     market_val,
+            "prev_market_value": prev_market_val,
+            "total_pnl":        total_pnl,
+            "total_pnl_pct":    total_pnl_pct,
         })
 
     total_market = sum(r["market_value"] for r in results)
+    total_prev   = sum(r["prev_market_value"] for r in results)
     total_cost   = sum(r["qty"] * r["avg_cost"] for r in results)
+    daily_pnl    = round(total_market - total_prev, 2)
+    daily_pnl_pct = round(daily_pnl / total_prev * 100, 2) if total_prev else 0.0
     return {
         "holdings":           results,
         "total_market_value": round(total_market, 2),
+        "daily_pnl":          daily_pnl,
+        "daily_pnl_pct":      daily_pnl_pct,
         "total_pnl":          round(total_market - total_cost, 2),
         "total_pnl_pct":      round((total_market - total_cost) / total_cost * 100, 2)
                               if total_cost else 0.0,
