@@ -431,37 +431,42 @@ st.markdown("""
 
 top_left, top_right = st.columns([6, 1])
 with top_left:
-    st.markdown("""
+    import streamlit.components.v1 as _cv1
+    _cv1.html("""
+<!DOCTYPE html>
+<html>
+<head>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@700&display=swap" rel="stylesheet">
 <style>
-#mm-wrap {
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: transparent; overflow: visible; }
+  #mm-wrap {
     position: relative;
     display: inline-block;
-    overflow: visible;
     padding-top: 44px;
-    margin-top: -36px;
-}
-#mm-logo {
-    font-family: 'Inter', sans-serif !important;
-    font-size: 52px !important;
-    font-weight: 700 !important;
-    letter-spacing: -0.03em !important;
-    line-height: 1.1 !important;
-    margin: 0 0 4px 0 !important;
-    padding: 0 !important;
-    color: #ffffff !important;
+  }
+  #mm-logo {
+    font-family: 'Inter', sans-serif;
+    font-size: 52px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    color: #ffffff;
     display: block;
-}
-.mml { display: inline-block; }
-#mm-dot {
+    white-space: nowrap;
+  }
+  .mml { display: inline-block; }
+  #mm-dot {
     position: absolute;
     background: #76b900;
     border-radius: 50%;
     pointer-events: none;
     box-shadow: 0 0 8px #76b900, 0 0 18px rgba(118,185,0,0.35);
     opacity: 0;
-    transition: none;
-}
+  }
 </style>
+</head>
+<body>
 <div id="mm-wrap">
   <h1 id="mm-logo"><span class="mml">M</span><span class="mml">a</span><span class="mml">r</span><span class="mml">k</span><span class="mml">e</span><span class="mml">t</span><span class="mml">M</span><span class="mml">&#x131;</span><span class="mml">n</span><span class="mml">d</span></h1>
   <div id="mm-dot"></div>
@@ -477,7 +482,7 @@ with top_left:
     const I_IDX    = 7;
     const HOP_MS   = 780;
     const PAUSE_MS = 2200;
-    const ARC_H    = 40;
+    const ARC_H    = 38;
 
     function ease(t) { return t < 0.5 ? 2*t*t : -1+(4-2*t)*t; }
 
@@ -487,8 +492,8 @@ with top_left:
         const r  = el.getBoundingClientRect();
         const sz = r.height * 0.13;
         const y  = i === I_IDX
-          ? (r.top - wr.top) + r.height * 0.07   // land at dot height of i
-          : (r.top - wr.top) - sz * 0.6;          // float just above other letters
+          ? (r.top - wr.top) + r.height * 0.07
+          : (r.top - wr.top) - sz * 0.6;
         return { x: r.left - wr.left + r.width / 2, y, sz };
       });
     }
@@ -497,23 +502,21 @@ with top_left:
 
     function frame(ts) {
       if (!t0) t0 = ts;
-      const el  = ts - t0;
+      const elapsed = ts - t0;
       const pos = getPos();
 
       if (phase === 'hop') {
-        const t  = Math.min(el / HOP_MS, 1);
+        const t  = Math.min(elapsed / HOP_MS, 1);
         const et = ease(t);
         const A  = pos[fi], B = pos[ti];
         const lx = A.x + (B.x - A.x) * et;
         const ly = A.y + (B.y - A.y) * et - ARC_H * Math.sin(et * Math.PI);
         const sz = A.sz + (B.sz - A.sz) * et;
-
         dot.style.width   = sz + 'px';
         dot.style.height  = sz + 'px';
         dot.style.left    = (lx - sz / 2) + 'px';
         dot.style.top     = ly + 'px';
         dot.style.opacity = '1';
-
         if (t >= 1) {
           if (ti === I_IDX) { phase = 'pause'; }
           else              { fi = ti; ti++; }
@@ -521,16 +524,15 @@ with top_left:
         }
 
       } else if (phase === 'pause') {
-        const t  = Math.min(el / PAUSE_MS, 1);
+        const t  = Math.min(elapsed / PAUSE_MS, 1);
         const pi = pos[I_IDX];
-        // Small settle bob that damps out
         const bob = Math.abs(Math.sin(t * Math.PI * 2.5)) * 8 * Math.max(0, 1 - t * 2.5);
         dot.style.left = (pi.x - pi.sz / 2) + 'px';
         dot.style.top  = (pi.y - bob) + 'px';
         if (t >= 1) { phase = 'fadeout'; t0 = ts; }
 
-      } else { // fadeout
-        const t = Math.min(el / 220, 1);
+      } else {
+        const t = Math.min(elapsed / 220, 1);
         dot.style.opacity = (1 - t).toFixed(3);
         if (t >= 1) { fi = 0; ti = 1; phase = 'hop'; t0 = ts; }
       }
@@ -538,15 +540,15 @@ with top_left:
       requestAnimationFrame(frame);
     }
 
-    setTimeout(() => { t0 = null; requestAnimationFrame(frame); }, 300);
+    setTimeout(() => { t0 = null; requestAnimationFrame(frame); }, 400);
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', run);
-  } else { run(); }
+  run();
 })();
 </script>
-""", unsafe_allow_html=True)
+</body>
+</html>
+""", height=110)
     st.markdown("<p style='color:#ffffff;font-size:15px'>Welcome back, <b>{}</b>.</p>".format(display_name), unsafe_allow_html=True)
 with top_right:
     st.markdown("<div style='padding-top:20px'></div>", unsafe_allow_html=True)
