@@ -1,6 +1,12 @@
-from config import db
-from google.cloud import firestore
+from config import db, GCS_BUCKET_NAME
+from google.cloud import firestore, storage
 from datetime import date
+
+_gcs = storage.Client()
+
+
+def _gcs_audio_path(uid: str, date_str: str) -> str:
+    return f"audio_briefs/{uid}/{date_str}.mp3"
 
 
 def get_user(uid: str) -> dict | None:
@@ -79,31 +85,39 @@ def delete_todays_brief(uid: str) -> None:
 
 
 def get_todays_audio(uid: str) -> bytes | None:
-    doc = (
-        db.collection("users")
-        .document(uid)
-        .collection("audio_briefs")
-        .document(str(date.today()))
-        .get()
-    )
-    if not doc.exists:
+    """Download today's audio MP3 from GCS. Returns None if not yet generated."""
+    date_str  = str(date.today())
+    blob_name = _gcs_audio_path(uid, date_str)
+    try:
+        bucket = _gcs.bucket(GCS_BUCKET_NAME)
+        blob   = bucket.blob(blob_name)
+        if not blob.exists():
+            return None
+        return blob.download_as_bytes()
+    except Exception:
         return None
-    data = doc.to_dict()
-    raw = data.get("mp3")
-    # Firestore returns bytes blobs as bytes directly
-    return bytes(raw) if raw is not None else None
 
 
 def save_todays_audio(uid: str, audio_bytes: bytes) -> None:
-    db.collection("users").document(uid).collection("audio_briefs").document(
-        str(date.today())
-    ).set({"mp3": audio_bytes})
+    """Upload today's audio MP3 to GCS."""
+    date_str  = str(date.today())
+    blob_name = _gcs_audio_path(uid, date_str)
+    bucket    = _gcs.bucket(GCS_BUCKET_NAME)
+    blob      = bucket.blob(blob_name)
+    blob.upload_from_string(audio_bytes, content_type="audio/mpeg")
 
 
 def delete_todays_audio(uid: str) -> None:
-    db.collection("users").document(uid).collection("audio_briefs").document(
-        str(date.today())
-    ).delete()
+    """Delete today's audio MP3 from GCS."""
+    date_str  = str(date.today())
+    blob_name = _gcs_audio_path(uid, date_str)
+    try:
+        bucket = _gcs.bucket(GCS_BUCKET_NAME)
+        blob   = bucket.blob(blob_name)
+        if blob.exists():
+            blob.delete()
+    except Exception:
+        pass
 
 
 def get_brief_history(uid: str, days: int = 30) -> list[dict]:

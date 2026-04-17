@@ -17,8 +17,9 @@ SEC_USER_AGENT  = os.getenv(
 )
 
 # ── GCP ───────────────────────────────────────────────────────────────────────
-GCP_PROJECT_ID = os.getenv("GCP_PROJECT_ID")
-GCP_REGION     = os.getenv("GCP_REGION", "us-east1")
+GCP_PROJECT_ID  = os.getenv("GCP_PROJECT_ID")
+GCP_REGION      = os.getenv("GCP_REGION", "us-east1")
+GCS_BUCKET_NAME = os.getenv("GCS_BUCKET_NAME", "")
 
 # ── Qdrant ────────────────────────────────────────────────────────────────────
 QDRANT_URL     = os.getenv("QDRANT_URL", "http://localhost:6333")
