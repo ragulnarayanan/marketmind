@@ -386,7 +386,7 @@ if not st.session_state.get("uid"):
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
   html,body{background:transparent;overflow:visible}
-  #stage{position:relative;padding-top:46px;perspective:600px}
+  #stage{position:relative;padding-top:80px;overflow:visible;perspective:600px}
   #ghost{font-family:'Inter',sans-serif;font-size:52px;font-weight:700;letter-spacing:-0.03em;line-height:1;white-space:nowrap;opacity:0;pointer-events:none;user-select:none}
   .al{font-family:'Inter',sans-serif;font-size:52px;font-weight:700;letter-spacing:-0.03em;line-height:1;color:#fff;position:absolute;white-space:nowrap;opacity:0}
   #dot{position:absolute;background:#76b900;border-radius:50%;pointer-events:none;opacity:0;box-shadow:0 0 8px #76b900,0 0 18px rgba(118,185,0,.4)}
@@ -417,7 +417,7 @@ if not st.session_state.get("uid"):
       case 'spin':ls[0].style.left=wCx+'px';ls[0].style.opacity=Math.min(t*3,1).toFixed(3);ls[0].style.transform=`perspective(300px) rotateY(${(1-et)*360}deg) scale(${et})`;ls[6].style.opacity='0';break;
       case 'split':ls[0].style.transform='';ls[0].style.left=(wCx+(fp[0].x-wCx)*et)+'px';ls[0].style.opacity='1';ls[6].style.left=(wCx+(fp[6].x-wCx)*et)+'px';ls[6].style.opacity=Math.min(t*2,1).toFixed(3);ls[6].style.transform=`scale(${.4+et*.6})`;break;
       case 'unfold':ls[0].style.left=fp[0].x+'px';ls[0].style.transform='';ls[6].style.left=fp[6].x+'px';ls[6].style.transform='';ls[6].style.opacity='1';[1,2,3,4,5].forEach((idx,ord)=>{const lt=Math.max(0,Math.min((el-ord*90)/220,1)),e2=eO(lt);ls[idx].style.opacity=e2.toFixed(3);ls[idx].style.transform=`scaleX(${e2})`;ls[idx].style.transformOrigin='left center';});[7,8,9].forEach((idx,ord)=>{const lt=Math.max(0,Math.min((el-ord*90)/220,1)),e2=eO(lt);ls[idx].style.opacity=e2.toFixed(3);ls[idx].style.transform=`scaleX(${e2})`;ls[idx].style.transformOrigin='left center';});break;
-      case 'fall':{ls.forEach((e2,i)=>{e2.style.opacity='1';e2.style.transform='';e2.style.left=fp[i].x+'px';});const D=dp(9),sy=D.y-140,g=t*t;sd(D.x,sy+(D.y-sy)*g,D.sz,Math.min(t/0.25,1).toFixed(3));break;}
+      case 'fall':{ls.forEach((e2,i)=>{e2.style.opacity='1';e2.style.transform='';e2.style.left=fp[i].x+'px';});const D=dp(9),g=t*t;sd(D.x,D.y*g,D.sz,'1');break;}
       case 'bounce':{const p=dp(9),bh=22*Math.pow(1-t,1.5)*Math.abs(Math.sin(t*Math.PI*2));sd(p.x,p.y-bh,p.sz,'1');break;}
       case 'hop1':{const A=dp(9),B=dp(8),ei=eIO(t);sd(A.x+(B.x-A.x)*ei,A.y+(B.y-A.y)*ei-ARC*Math.sin(ei*Math.PI),A.sz+(B.sz-A.sz)*ei,'1');break;}
       case 'hop2':{const A=dp(8),B=dp(7),ei=eIO(t);sd(A.x+(B.x-A.x)*ei,A.y+(B.y-A.y)*ei-ARC*Math.sin(ei*Math.PI),A.sz+(B.sz-A.sz)*ei,'1');break;}
@@ -431,7 +431,7 @@ if not st.session_state.get("uid"):
   }
   reset();requestAnimationFrame(frame);
 },450);}());
-</script></body></html>""", height=112)
+</script></body></html>""", height=148)
 
         st.markdown(
             "<p style='color:#a1a1aa;font-size:20px;margin:4px 0 32px'>AI-powered stock research and daily portfolio brief.</p>",
@@ -536,7 +536,7 @@ with top_left:
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
   html,body{background:transparent;overflow:visible}
-  #stage{position:relative;padding-top:46px;perspective:600px}
+  #stage{position:relative;padding-top:80px;overflow:visible;perspective:600px}
   #ghost{
     font-family:'Inter',sans-serif;font-size:52px;font-weight:700;
     letter-spacing:-0.03em;line-height:1;white-space:nowrap;
@@ -667,10 +667,10 @@ setTimeout(function(){
         });
         break;
 
-      case 'fall':{ // dot drops from above d(9)
+      case 'fall':{ // dot drops from top of stage onto d(9)
         ls.forEach((e2,i)=>{ e2.style.opacity='1'; e2.style.transform=''; e2.style.left=fp[i].x+'px'; });
-        const D=dp(9),sy=D.y-140,g=t*t;
-        setDot(D.x, sy+(D.y-sy)*g, D.sz, Math.min(t/0.25,1).toFixed(3));
+        const D=dp(9),g=t*t;
+        setDot(D.x, D.y*g, D.sz, '1');
         break;}
 
       case 'bounce':{ // dot bounces on d(9)
@@ -724,7 +724,7 @@ setTimeout(function(){
 </script>
 </body>
 </html>
-""", height=112)
+""", height=148)
     st.markdown("<p style='color:#ffffff;font-size:15px'>Welcome back, <b>{}</b>.</p>".format(display_name), unsafe_allow_html=True)
 with top_right:
     st.markdown("<div style='padding-top:20px'></div>", unsafe_allow_html=True)
