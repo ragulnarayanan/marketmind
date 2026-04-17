@@ -432,123 +432,162 @@ st.markdown("""
 top_left, top_right = st.columns([6, 1])
 with top_left:
     import streamlit.components.v1 as _cv1
-    _cv1.html("""
-<!DOCTYPE html>
+    _cv1.html("""<!DOCTYPE html>
 <html>
 <head>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@700&display=swap" rel="stylesheet">
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  html, body { background: transparent; overflow: visible; }
-  #mm-wrap {
-    position: relative;
-    display: inline-block;
-    padding-top: 44px;
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { background:transparent; overflow:visible; }
+  #stage { position:relative; padding-top:46px; }
+  #ghost {
+    font-family:'Inter',sans-serif; font-size:52px; font-weight:700;
+    letter-spacing:-0.03em; line-height:1; white-space:nowrap;
+    opacity:0; pointer-events:none; user-select:none;
   }
-  #mm-logo {
-    font-family: 'Inter', sans-serif;
-    font-size: 52px;
-    font-weight: 700;
-    letter-spacing: -0.03em;
-    line-height: 1.1;
-    color: #ffffff;
-    display: block;
-    white-space: nowrap;
+  .al {
+    font-family:'Inter',sans-serif; font-size:52px; font-weight:700;
+    letter-spacing:-0.03em; line-height:1; color:#fff;
+    position:absolute; white-space:nowrap; opacity:0;
   }
-  .mml { display: inline-block; }
-  #mm-dot {
-    position: absolute;
-    background: #76b900;
-    border-radius: 50%;
-    pointer-events: none;
-    box-shadow: 0 0 8px #76b900, 0 0 18px rgba(118,185,0,0.35);
-    opacity: 0;
+  #dot {
+    position:absolute; background:#76b900; border-radius:50%;
+    pointer-events:none; opacity:0;
+    box-shadow:0 0 8px #76b900,0 0 18px rgba(118,185,0,.35);
   }
 </style>
 </head>
 <body>
-<div id="mm-wrap">
-  <h1 id="mm-logo"><span class="mml">M</span><span class="mml">a</span><span class="mml">r</span><span class="mml">k</span><span class="mml">e</span><span class="mml">t</span><span class="mml">M</span><span class="mml">&#x131;</span><span class="mml">n</span><span class="mml">d</span></h1>
-  <div id="mm-dot"></div>
+<div id="stage">
+  <div id="ghost">
+    <span id="g0">M</span><span id="g1">a</span><span id="g2">r</span><span id="g3">k</span><span id="g4">e</span><span id="g5">t</span><span id="g6">M</span><span id="g7">&#x131;</span><span id="g8">n</span><span id="g9">d</span>
+  </div>
+  <span id="l0" class="al">M</span><span id="l1" class="al">a</span><span id="l2" class="al">r</span>
+  <span id="l3" class="al">k</span><span id="l4" class="al">e</span><span id="l5" class="al">t</span>
+  <span id="l6" class="al">M</span><span id="l7" class="al">&#x131;</span>
+  <span id="l8" class="al">n</span><span id="l9" class="al">d</span>
+  <div id="dot"></div>
 </div>
 <script>
-(function() {
-  function run() {
-    const wrap    = document.getElementById('mm-wrap');
-    const dot     = document.getElementById('mm-dot');
-    const letters = Array.from(document.querySelectorAll('#mm-logo .mml'));
-    if (!wrap || !dot || letters.length < 10) { setTimeout(run, 150); return; }
+(function(){
+  setTimeout(function(){
+    const stage = document.getElementById('stage');
+    const sr    = stage.getBoundingClientRect();
+    const fp    = Array.from({length:10},(_,i)=>{
+      const r = document.getElementById('g'+i).getBoundingClientRect();
+      return {x:r.left-sr.left, y:r.top-sr.top, w:r.width, h:r.height};
+    });
+    const ls = Array.from({length:10},(_,i)=>document.getElementById('l'+i));
+    const dot = document.getElementById('dot');
 
-    const I_IDX    = 7;
-    const HOP_MS   = 780;
-    const PAUSE_MS = 2200;
-    const ARC_H    = 38;
+    // Place all letters at final positions, hidden
+    ls.forEach((el,i)=>{ el.style.left=fp[i].x+'px'; el.style.top=fp[i].y+'px'; });
 
-    function ease(t) { return t < 0.5 ? 2*t*t : -1+(4-2*t)*t; }
+    const wL = fp[0].x, wR = fp[9].x+fp[9].w;
+    const cx  = wL + (wR-wL)/2 - fp[0].w/2;   // center start x for both Ms
 
-    function getPos() {
-      const wr = wrap.getBoundingClientRect();
-      return letters.map((el, i) => {
-        const r  = el.getBoundingClientRect();
-        const sz = r.height * 0.13;
-        const y  = i === I_IDX
-          ? (r.top - wr.top) + r.height * 0.07
-          : (r.top - wr.top) - sz * 0.6;
-        return { x: r.left - wr.left + r.width / 2, y, sz };
-      });
+    const T1=700, T2=1300, T3=2000;            // phase boundaries (ms)
+    const ARC=38, HOP=750, PAUSE=2200, FADE=220;
+    const CYCLE = HOP+HOP+PAUSE+FADE;
+
+    function easeOut(t){ return 1-Math.pow(1-t,3); }
+    function easeIO(t){ return t<.5?2*t*t:-1+(4-2*t)*t; }
+
+    function dotPos(idx){
+      return { x:fp[idx].x+fp[idx].w/2, y:fp[idx].y+fp[idx].h*0.08, sz:fp[idx].h*0.13 };
+    }
+    function placeDot(x,y,sz,op){
+      dot.style.width=sz+'px'; dot.style.height=sz+'px';
+      dot.style.left=(x-sz/2)+'px'; dot.style.top=y+'px';
+      dot.style.opacity=op;
     }
 
-    let fi = 0, ti = 1, phase = 'hop', t0 = null;
+    let start=null;
+    function frame(ts){
+      if(!start) start=ts;
+      const now=ts-start;
 
-    function frame(ts) {
-      if (!t0) t0 = ts;
-      const elapsed = ts - t0;
-      const pos = getPos();
+      /* ── Phase 1: single M spins in at center (0→T1) ── */
+      if(now<=T1){
+        const t=now/T1, et=easeOut(t);
+        ls[0].style.left = cx+'px';
+        ls[0].style.opacity = Math.min(t*2,1);
+        ls[0].style.transform = `rotate(${(1-et)*360}deg) scale(${.3+et*.7})`;
+        ls[6].style.opacity='0';
 
-      if (phase === 'hop') {
-        const t  = Math.min(elapsed / HOP_MS, 1);
-        const et = ease(t);
-        const A  = pos[fi], B = pos[ti];
-        const lx = A.x + (B.x - A.x) * et;
-        const ly = A.y + (B.y - A.y) * et - ARC_H * Math.sin(et * Math.PI);
-        const sz = A.sz + (B.sz - A.sz) * et;
-        dot.style.width   = sz + 'px';
-        dot.style.height  = sz + 'px';
-        dot.style.left    = (lx - sz / 2) + 'px';
-        dot.style.top     = ly + 'px';
-        dot.style.opacity = '1';
-        if (t >= 1) {
-          if (ti === I_IDX) { phase = 'pause'; }
-          else              { fi = ti; ti++; }
-          t0 = ts;
-        }
+      /* ── Phase 2: M splits to both final positions (T1→T2) ── */
+      } else if(now<=T2){
+        const t=(now-T1)/(T2-T1), et=easeOut(t);
+        // M1 slides left to final
+        ls[0].style.transform='';
+        ls[0].style.left=(cx+(fp[0].x-cx)*et)+'px';
+        ls[0].style.opacity='1';
+        // M2 fades+scales in and slides right to final
+        ls[6].style.left=(cx+(fp[6].x-cx)*et)+'px';
+        ls[6].style.opacity=Math.min(t*2,1).toFixed(3);
+        ls[6].style.transform=`scale(${.4+et*.6})`;
 
-      } else if (phase === 'pause') {
-        const t  = Math.min(elapsed / PAUSE_MS, 1);
-        const pi = pos[I_IDX];
-        const bob = Math.abs(Math.sin(t * Math.PI * 2.5)) * 8 * Math.max(0, 1 - t * 2.5);
-        dot.style.left = (pi.x - pi.sz / 2) + 'px';
-        dot.style.top  = (pi.y - bob) + 'px';
-        if (t >= 1) { phase = 'fadeout'; t0 = ts; }
+      /* ── Phase 3: letters unfold from each M (T2→T3) ── */
+      } else if(now<=T3){
+        const el=now-T2, dur=190, gap=75;
+        ls[0].style.left=fp[0].x+'px'; ls[0].style.transform='';
+        ls[6].style.left=fp[6].x+'px'; ls[6].style.transform=''; ls[6].style.opacity='1';
+        // "arket" from M1
+        [1,2,3,4,5].forEach((idx,ord)=>{
+          const t=Math.max(0,Math.min((el-ord*gap)/dur,1));
+          const et=easeOut(t);
+          ls[idx].style.opacity=et.toFixed(3);
+          ls[idx].style.transform=`scaleX(${et})`;
+          ls[idx].style.transformOrigin='left center';
+        });
+        // "ind" from M2
+        [7,8,9].forEach((idx,ord)=>{
+          const t=Math.max(0,Math.min((el-ord*gap)/dur,1));
+          const et=easeOut(t);
+          ls[idx].style.opacity=et.toFixed(3);
+          ls[idx].style.transform=`scaleX(${et})`;
+          ls[idx].style.transformOrigin='left center';
+        });
 
+      /* ── Phase 4: dot hops M1→M2→i, loops (T3→∞) ── */
       } else {
-        const t = Math.min(elapsed / 220, 1);
-        dot.style.opacity = (1 - t).toFixed(3);
-        if (t >= 1) { fi = 0; ti = 1; phase = 'hop'; t0 = ts; }
+        ls.forEach((el,i)=>{
+          el.style.opacity='1'; el.style.transform='';
+          el.style.left=fp[i].x+'px';
+        });
+        const ct=(now-T3)%CYCLE;
+
+        if(ct<HOP){
+          const t=ct/HOP, et=easeIO(t);
+          const A=dotPos(0), B=dotPos(6);
+          placeDot(A.x+(B.x-A.x)*et, A.y+(B.y-A.y)*et-ARC*Math.sin(et*Math.PI),
+                   A.sz+(B.sz-A.sz)*et, '1');
+        } else if(ct<HOP*2){
+          const t=(ct-HOP)/HOP, et=easeIO(t);
+          const A=dotPos(6), B=dotPos(7);
+          placeDot(A.x+(B.x-A.x)*et, A.y+(B.y-A.y)*et-ARC*Math.sin(et*Math.PI),
+                   A.sz+(B.sz-A.sz)*et, '1');
+        } else if(ct<HOP*2+PAUSE){
+          const t=(ct-HOP*2)/PAUSE;
+          const p=dotPos(7);
+          const bob=Math.abs(Math.sin(t*Math.PI*2.5))*7*Math.max(0,1-t*2.5);
+          placeDot(p.x, p.y-bob, p.sz, '1');
+        } else {
+          const t=(ct-HOP*2-PAUSE)/FADE;
+          const p=dotPos(7);
+          placeDot(p.x, p.y, p.sz, (1-Math.min(t,1)).toFixed(3));
+        }
       }
 
       requestAnimationFrame(frame);
     }
-
-    setTimeout(() => { t0 = null; requestAnimationFrame(frame); }, 400);
-  }
-
-  run();
+    requestAnimationFrame(frame);
+  }, 450);
 })();
 </script>
 </body>
 </html>
-""", height=110)
+""", height=112)
     st.markdown("<p style='color:#ffffff;font-size:15px'>Welcome back, <b>{}</b>.</p>".format(display_name), unsafe_allow_html=True)
 with top_right:
     st.markdown("<div style='padding-top:20px'></div>", unsafe_allow_html=True)
