@@ -15,6 +15,13 @@ _NAV_CSS = """
     pointer-events: none !important;
 }
 
+/* ── Hide heading anchor link icons ─────────────────────────────── */
+[data-testid="stMarkdownContainer"] h1 a,
+[data-testid="stMarkdownContainer"] h2 a,
+[data-testid="stMarkdownContainer"] h3 a {
+    display: none !important;
+}
+
 /* ── Buttons — solid green, black text ──────────────────────────── */
 .stButton > button,
 button[data-testid="stBaseButton-primary"],

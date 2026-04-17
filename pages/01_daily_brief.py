@@ -582,13 +582,14 @@ if not sources_by_ticker:
 if not sources_by_ticker:
     st.caption("No source links available.")
 else:
-    def _article_row(a: dict) -> str:
+    def _article_row(a: dict, border: bool = True) -> str:
         headline = a.get("headline", "")[:100]
         url      = a.get("url", "")
         domain   = a.get("domain", "")
         pub      = a.get("published_at", "")
+        border_style = "border-bottom:1px solid #1a1a1a;" if border else ""
         return (
-            f"<div style='padding:8px 0;border-bottom:1px solid #1a1a1a;last-child:border:none'>"
+            f"<div style='padding:9px 0;{border_style}'>"
             f"<a href='{url}' target='_blank' style='color:#ffffff;font-size:13px;"
             f"font-family:Inter,sans-serif;text-decoration:none;line-height:1.5'>{headline}</a><br>"
             f"<span style='color:#52525b;font-size:11px;font-family:Inter,sans-serif'>"
@@ -602,30 +603,33 @@ else:
         visible   = articles[:4]
         remaining = articles[4:]
 
-        visible_html = "".join(_article_row(a) for a in visible)
+        visible_html   = "".join(_article_row(a, border=True) for a in visible)
+        remaining_html = "".join(_article_row(a, border=True) for a in remaining)
+
+        dropdown = ""
+        if remaining:
+            dropdown = (
+                f"<details style='margin-top:4px'>"
+                f"<summary style='color:#76b900;font-size:12px;font-weight:600;"
+                f"font-family:Inter,sans-serif;cursor:pointer;padding:8px 0;"
+                f"list-style:none;outline:none'>"
+                f"&#43;&nbsp;{len(remaining)} more articles</summary>"
+                f"<div style='border-top:1px solid #1a1a1a;margin-top:2px'>"
+                f"{remaining_html}"
+                f"</div>"
+                f"</details>"
+            )
+
         st.markdown(
             f"<div style='background:#0a0a0a;border:1px solid #1a1a1a;border-radius:10px;"
-            f"padding:12px 18px;margin-bottom:6px'>"
+            f"padding:12px 18px;margin-bottom:10px'>"
             f"<div style='color:#76b900;font-size:11px;font-weight:700;"
-            f"font-family:Inter,sans-serif;letter-spacing:0.06em;margin-bottom:6px'>{ticker}</div>"
+            f"font-family:Inter,sans-serif;letter-spacing:0.06em;margin-bottom:4px'>{ticker}</div>"
             f"{visible_html}"
+            f"{dropdown}"
             f"</div>",
             unsafe_allow_html=True,
         )
-        if remaining:
-            with st.expander(f"+ {len(remaining)} more articles for {ticker}"):
-                for a in remaining:
-                    headline = a.get("headline", "")[:100]
-                    url      = a.get("url", "")
-                    domain   = a.get("domain", "")
-                    pub      = a.get("published_at", "")
-                    st.markdown(
-                        f"[{headline}]({url})  \n"
-                        f"<span style='color:#52525b;font-size:11px;"
-                        f"font-family:Inter,sans-serif'>{domain}&nbsp;·&nbsp;{pub}</span>",
-                        unsafe_allow_html=True,
-                    )
-                    st.divider()
 
 generated_at = brief.get("generated_at", "")
 if generated_at:
