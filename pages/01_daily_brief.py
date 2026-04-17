@@ -130,6 +130,60 @@ st.markdown("""
 
 st.title("Daily Brief")
 
+# ── Daily market quote ────────────────────────────────────────────────────────
+from datetime import date as _date
+
+_QUOTES = [
+    ("The stock market is a device for transferring money from the impatient to the patient.", "Warren Buffett"),
+    ("In investing, what is comfortable is rarely profitable.", "Robert Arnott"),
+    ("The four most dangerous words in investing are: 'This time it's different.'", "Sir John Templeton"),
+    ("Risk comes from not knowing what you're doing.", "Warren Buffett"),
+    ("The market is filled with individuals who know the price of everything, but the value of nothing.", "Philip Fisher"),
+    ("The individual investor should act consistently as an investor and not as a speculator.", "Ben Graham"),
+    ("It's not whether you're right or wrong that's important, it's how much money you make when you're right.", "George Soros"),
+    ("The best investment you can make is in yourself.", "Warren Buffett"),
+    ("Know what you own, and know why you own it.", "Peter Lynch"),
+    ("An investment in knowledge pays the best interest.", "Benjamin Franklin"),
+    ("Wide diversification is only required when investors do not understand what they are doing.", "Warren Buffett"),
+    ("The big money is not in the buying and selling, but in the waiting.", "Charlie Munger"),
+    ("Don't look for the needle in the haystack. Just buy the haystack.", "John Bogle"),
+    ("Markets can remain irrational longer than you can remain solvent.", "John Maynard Keynes"),
+    ("Buy when everyone else is selling, and hold until everyone else is buying.", "J. Paul Getty"),
+    ("Price is what you pay. Value is what you get.", "Warren Buffett"),
+    ("Time in the market beats timing the market.", "Ken Fisher"),
+    ("Invest for the long haul. Don't get too greedy and don't get too scared.", "Shelby M.C. Davis"),
+    ("The stock market is a no-called-strike game. You don't have to swing at everything.", "Warren Buffett"),
+    ("In the short run, the market is a voting machine; in the long run, it is a weighing machine.", "Ben Graham"),
+    ("October is one of the peculiarly dangerous months to speculate in stocks.", "Mark Twain"),
+    ("Diversification is protection against ignorance.", "Warren Buffett"),
+    ("The goal of a successful trader is to make the best trades. Money is secondary.", "Alexander Elder"),
+    ("Do not save what is left after spending; instead spend what is left after saving.", "Warren Buffett"),
+    ("Behind every stock is a company. Find out what it's doing.", "Peter Lynch"),
+    ("The intelligent investor is a realist who sells to optimists and buys from pessimists.", "Ben Graham"),
+    ("Opportunities come infrequently. When it rains gold, put out the bucket, not the thimble.", "Warren Buffett"),
+    ("You get recessions, you have stock market declines. If you don't understand that's going to happen, you're not ready.", "Peter Lynch"),
+    ("A lot of people with high IQs are terrible investors because they've got terrible temperaments.", "Charlie Munger"),
+    ("The most contrarian thing of all is not to oppose the crowd but to think for yourself.", "Peter Thiel"),
+]
+
+_today_quote, _today_author = _QUOTES[_date.today().timetuple().tm_yday % len(_QUOTES)]
+st.markdown(
+    f"""
+    <div style="
+        border-left: 3px solid #76b900;
+        padding: 10px 16px;
+        margin: 4px 0 20px 0;
+        background: rgba(118,185,0,0.04);
+        border-radius: 0 8px 8px 0;
+    ">
+        <span style="color:#a1a1aa;font-size:13px;font-style:italic;">"{_today_quote}"</span>
+        <br>
+        <span style="color:#52525b;font-size:11px;font-weight:600;letter-spacing:0.05em;">— {_today_author}</span>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
+
 # ── Load / Generate ───────────────────────────────────────────────────────────
 
 brief = get_todays_brief(uid)

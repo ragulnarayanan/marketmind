@@ -189,7 +189,12 @@ def write_audio_script(brief: dict) -> str:
                    "Keep watching the key levels.",
     }
     script += CLOSE.get(sentiment, CLOSE["neutral"])
-    script += " This has been your MarketMind daily brief."
+    script += (
+        " This has been your MarketMind daily brief.\n\n"
+        "Quick heads up — everything you just heard is AI generated. "
+        "MarketMind is not a registered investment advisor. "
+        "Use the source articles to dig deeper, and always make your own call."
+    )
 
     return script
 
