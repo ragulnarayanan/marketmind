@@ -404,7 +404,7 @@ render_nav()
 top_left, top_right = st.columns([6, 1])
 with top_left:
     st.title("MarketMind")
-    st.markdown("Welcome back, **{}**.".format(display_name))
+    st.markdown("<p style='color:#ffffff;font-size:15px'>Welcome back, <b>{}</b>.</p>".format(display_name), unsafe_allow_html=True)
 with top_right:
     st.markdown("<div style='padding-top:20px'></div>", unsafe_allow_html=True)
     if st.button("Sign Out", key="home_sign_out"):
@@ -417,12 +417,12 @@ st.divider()
 col1, col2 = st.columns(2)
 with col1:
     st.markdown("### Daily Brief")
-    st.write("Get your personalized portfolio P&L, news summaries, macro alerts, and buy/wait signals.")
+    st.markdown("<p style='color:#ffffff'>Get your personalized portfolio P&L, news summaries, macro alerts, and buy/wait signals.</p>", unsafe_allow_html=True)
     if st.button("Open Daily Brief", key="home_brief", type="primary"):
         st.switch_page("pages/01_daily_brief.py")
 
 with col2:
     st.markdown("### Stock Research")
-    st.write("Enter any ticker for a five-agent deep dive: news, SEC filings, financials, and a Buy/Hold/Sell verdict.")
+    st.markdown("<p style='color:#ffffff'>Enter any ticker for a five-agent deep dive: news, SEC filings, financials, and a Buy/Hold/Sell verdict.</p>", unsafe_allow_html=True)
     if st.button("Open Research", key="home_research", type="primary"):
         st.switch_page("pages/02_stock_research.py")
