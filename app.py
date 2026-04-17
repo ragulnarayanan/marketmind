@@ -456,49 +456,13 @@ import streamlit.components.v1 as _components
 _components.html("""
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { background: transparent; overflow: hidden; }
-  #wrap {
-    background: #0a0a0a;
-    border: 1px solid #1a1a1a;
-    border-radius: 12px;
-    padding: 14px 18px 10px;
-    position: relative;
-  }
-  #topRow {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-  }
-  #chartTitle {
-    font-family: 'Inter', sans-serif;
-    font-size: 11px;
-    font-weight: 600;
-    color: #52525b;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
-  #priceLabel {
-    font-family: 'Inter', monospace;
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 0.02em;
-  }
-  canvas { display: block; width: 100%; height: 160px; }
+  html, body { background: transparent; overflow: hidden; width: 100%; height: 100%; }
+  canvas { display: block; width: 100%; height: 100%; }
 </style>
-
-<div id="wrap">
-  <div id="topRow">
-    <span id="chartTitle">MarketMind · Simulated Live Feed</span>
-    <span id="priceLabel">—</span>
-  </div>
-  <canvas id="chart"></canvas>
-</div>
-
+<canvas id="chart"></canvas>
 <script>
-  const canvas    = document.getElementById('chart');
-  const ctx       = canvas.getContext('2d');
-  const priceEl   = document.getElementById('priceLabel');
+  const canvas = document.getElementById('chart');
+  const ctx    = canvas.getContext('2d');
 
   function resize() {
     canvas.width  = canvas.offsetWidth  * window.devicePixelRatio;
@@ -506,28 +470,27 @@ _components.html("""
     ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
   }
   resize();
-  window.addEventListener('resize', () => { resize(); });
+  window.addEventListener('resize', resize);
 
-  const POINTS = 100;
-  const SPEED  = 0.25;   // pixels per frame — slow scroll
-  const MEAN   = 150;    // mean-revert target
-  const VOL    = 2.2;    // volatility per new bar
+  const POINTS = 120;
+  const SPEED  = 0.12;
+  const MEAN   = 150;
+  const VOL    = 1.8;
 
   let prices = [];
   let offset = 0;
 
-  // Seed with a mean-reverting walk
   let p = MEAN;
-  for (let i = 0; i < POINTS + 2; i++) {
+  for (let i = 0; i < POINTS + 5; i++) {
     p += (MEAN - p) * 0.03 + (Math.random() - 0.5) * VOL * 2;
-    p  = Math.max(50, Math.min(250, p));
+    p  = Math.max(60, Math.min(240, p));
     prices.push(p);
   }
 
   function addBar() {
     let last = prices[prices.length - 1];
     last += (MEAN - last) * 0.03 + (Math.random() - 0.5) * VOL * 2;
-    last  = Math.max(50, Math.min(250, last));
+    last  = Math.max(60, Math.min(240, last));
     prices.push(last);
     if (prices.length > POINTS + 20) prices.shift();
   }
@@ -537,7 +500,7 @@ _components.html("""
     ctx.moveTo(toX(0), toY(pts[0]));
     for (let i = 0; i < pts.length - 1; i++) {
       const cx = (toX(i) + toX(i + 1)) / 2;
-      ctx.bezierCurveTo(cx, toY(pts[i]), cx, toY(pts[i + 1]), toX(i + 1), toY(pts[i + 1]));
+      ctx.bezierCurveTo(cx, toY(pts[i]), cx, toY(pts[i+1]), toX(i+1), toY(pts[i+1]));
     }
   }
 
@@ -547,113 +510,57 @@ _components.html("""
     ctx.clearRect(0, 0, W, H);
 
     offset += SPEED;
-    if (offset >= 1) {
-      offset -= 1;
-      addBar();
-    }
+    if (offset >= 1) { offset -= 1; addBar(); }
 
     const visible = prices.slice(-(POINTS + 1));
-    const vals    = visible;
-    const minV    = Math.min(...vals) - 8;
-    const maxV    = Math.max(...vals) + 8;
+    const minV    = Math.min(...visible) - 10;
+    const maxV    = Math.max(...visible) + 10;
     const range   = maxV - minV || 1;
 
-    const PAD_L = 8, PAD_R = 52, PAD_T = 8, PAD_B = 24;
-    const cW    = W - PAD_L - PAD_R;
+    const PAD_T = 10, PAD_B = 10;
     const cH    = H - PAD_T - PAD_B;
 
-    const toX = i  => PAD_L + ((i - offset) / (POINTS - 1)) * cW;
-    const toY = v  => PAD_T + cH - ((v - minV) / range) * cH;
+    const toX = i => ((i - offset) / (POINTS - 1)) * W;
+    const toY = v => PAD_T + cH - ((v - minV) / range) * cH;
 
-    // ── Grid lines ──────────────────────────────────────────────
-    const gridLines = 4;
-    ctx.setLineDash([3, 5]);
-    ctx.strokeStyle = '#1a1a1a';
-    ctx.lineWidth   = 1;
-    for (let g = 0; g <= gridLines; g++) {
-      const gy = PAD_T + (g / gridLines) * cH;
-      ctx.beginPath();
-      ctx.moveTo(PAD_L, gy);
-      ctx.lineTo(W - PAD_R, gy);
-      ctx.stroke();
-      // Y-axis label
-      const price = maxV - (g / gridLines) * range;
-      ctx.font      = '10px monospace';
-      ctx.fillStyle = '#3f3f46';
-      ctx.textAlign = 'left';
-      ctx.fillText(price.toFixed(0), W - PAD_R + 6, gy + 4);
-    }
-    ctx.setLineDash([]);
-
-    // Determine overall direction (first vs last visible point)
     const firstP = visible[0];
     const lastP  = visible[visible.length - 1];
     const rising = lastP >= firstP;
-    const lineColor = rising ? '#76b900' : '#e53e3e';
-    const fillColor = rising ? 'rgba(118,185,0,' : 'rgba(229,62,62,';
+    const lineColor  = rising ? '#76b900' : '#e53e3e';
+    const fillColor  = rising ? 'rgba(118,185,0,' : 'rgba(229,62,62,';
 
-    // ── Gradient fill under curve ────────────────────────────────
+    // Gradient fill
     const grad = ctx.createLinearGradient(0, PAD_T, 0, PAD_T + cH);
-    grad.addColorStop(0, fillColor + '0.18)');
+    grad.addColorStop(0, fillColor + '0.15)');
     grad.addColorStop(1, fillColor + '0.0)');
-
     smoothPath(visible, toX, toY);
-    ctx.lineTo(toX(visible.length - 1), PAD_T + cH);
-    ctx.lineTo(toX(0), PAD_T + cH);
+    ctx.lineTo(toX(visible.length - 1), H);
+    ctx.lineTo(toX(0), H);
     ctx.closePath();
     ctx.fillStyle = grad;
     ctx.fill();
 
-    // ── Price line ───────────────────────────────────────────────
+    // Line
     smoothPath(visible, toX, toY);
     ctx.strokeStyle = lineColor;
     ctx.lineWidth   = 2;
     ctx.lineJoin    = 'round';
     ctx.stroke();
 
-    // ── Glowing live dot ─────────────────────────────────────────
+    // Glowing tip dot
     const lx = toX(visible.length - 1);
     const ly = toY(lastP);
     ctx.shadowColor = lineColor;
-    ctx.shadowBlur  = 12;
+    ctx.shadowBlur  = 14;
     ctx.beginPath();
     ctx.arc(lx, ly, 4, 0, Math.PI * 2);
     ctx.fillStyle = lineColor;
     ctx.fill();
-    ctx.shadowBlur  = 0;
-
-    // ── Horizontal dashed line at live price ─────────────────────
-    ctx.setLineDash([4, 6]);
-    ctx.strokeStyle = lineColor + '66';
-    ctx.lineWidth   = 1;
-    ctx.beginPath();
-    ctx.moveTo(lx, ly);
-    ctx.lineTo(W - PAD_R, ly);
-    ctx.stroke();
-    ctx.setLineDash([]);
-
-    // ── Live price tag on right axis ─────────────────────────────
-    const tagH = 16, tagW = 44;
-    const tagX = W - PAD_R + 2;
-    const tagY = ly - tagH / 2;
-    ctx.fillStyle   = lineColor;
-    ctx.beginPath();
-    ctx.roundRect(tagX, tagY, tagW, tagH, 3);
-    ctx.fill();
-    ctx.font      = 'bold 10px monospace';
-    ctx.fillStyle = '#000000';
-    ctx.textAlign = 'center';
-    ctx.fillText(lastP.toFixed(2), tagX + tagW / 2, tagY + 11);
-
-    // ── Update price label above chart ───────────────────────────
-    const chg    = lastP - firstP;
-    const chgPct = ((chg / firstP) * 100).toFixed(2);
-    priceEl.textContent = lastP.toFixed(2) + '  ' + (chg >= 0 ? '+' : '') + chgPct + '%';
-    priceEl.style.color = rising ? '#76b900' : '#e53e3e';
+    ctx.shadowBlur = 0;
 
     requestAnimationFrame(draw);
   }
 
   draw();
 </script>
-""", height=240)
+""", height=320)
