@@ -414,6 +414,10 @@ st.markdown("""
 [data-testid="stAppViewContainer"] h4 {
     color: #ffffff !important;
 }
+[data-testid="stAppViewContainer"] h1 {
+    font-size: 52px !important;
+    letter-spacing: -0.03em !important;
+}
 /* keep button text black */
 [data-testid="stAppViewContainer"] button,
 [data-testid="stAppViewContainer"] button *,
