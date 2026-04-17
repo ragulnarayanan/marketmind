@@ -477,7 +477,7 @@ _components.html("""
   window.addEventListener('resize', resize);
 
   const POINTS = 120;
-  const SPEED  = 0.12;
+  const SPEED  = 0.03;
   const MEAN   = 150;
   const VOL    = 1.8;
 
