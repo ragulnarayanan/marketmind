@@ -117,10 +117,11 @@ def write_audio_script(brief: dict) -> str:
     signals  = brief.get("signals", {})
 
     total_val  = pnl.get("total_market_value", 0)
-    daily_pnl  = pnl.get("daily_pnl", 0)
-    daily_pct  = pnl.get("daily_pnl_pct", 0)
     total_pnl  = pnl.get("total_pnl", 0)
     total_pct  = pnl.get("total_pnl_pct", 0)
+    # Compute daily P&L the same way the portfolio overview page does
+    daily_pnl  = sum(h.get("market_value", 0) * h.get("daily_pct", 0) / 100 for h in holdings)
+    daily_pct  = daily_pnl / total_val * 100 if total_val else 0.0
 
     direction = "up" if daily_pnl >= 0 else "down"
     pnl_word  = "gaining" if daily_pnl >= 0 else "losing"
