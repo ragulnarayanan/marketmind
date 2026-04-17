@@ -496,11 +496,17 @@ summary_text = summary_data.get("summary", "Summary unavailable.")
 label        = summary_data.get("sentiment_label", "neutral")
 score        = float(summary_data.get("sentiment_score", 5.0))
 
+_para_style = (
+    "font-size:15px;line-height:1.85;color:#ffffff;"
+    "font-family:Inter,sans-serif;margin:0 0 16px 0;"
+)
+_paragraphs = "".join(
+    f"<p style='{_para_style}'>{p.strip()}</p>"
+    for p in summary_text.split("\n\n") if p.strip()
+)
 st.markdown(
-    f"<p style='font-size:16px;line-height:1.9;color:#ffffff;"
-    f"background:#0a0a0a;padding:20px;border-radius:10px;"
-    f"border-left:3px solid #76b900;font-family:Inter,sans-serif'>"
-    f"{summary_text}</p>",
+    f"<div style='background:#0a0a0a;padding:20px 24px;border-radius:10px;"
+    f"border-left:3px solid #76b900'>{_paragraphs}</div>",
     unsafe_allow_html=True,
 )
 st.markdown(
