@@ -367,20 +367,6 @@ if AUTO_DEMO and not st.session_state.get("uid"):
 if not st.session_state.get("uid"):
     import streamlit.components.v1 as _cv1
 
-    # ── Demo / Try button at top ────────────────────────────────────────────────
-    col_demo, col_spacer = st.columns([0.15, 0.85])
-    with col_demo:
-        if st.button("✨ Try Demo", key="demo_btn", use_container_width=True):
-            st.session_state["uid"]          = DEMO_UID
-            st.session_state["display_name"] = "Demo Portfolio"
-            st.session_state["email"]        = "demo@marketmind.ai"
-            try:
-                from data.firestore_client import get_or_create_user
-                get_or_create_user(DEMO_UID, "demo@marketmind.ai", "Demo Portfolio")
-            except Exception:
-                pass
-            st.rerun()
-
     # ── Same white-text + black-button overrides as home page ────────────────
     st.markdown("""
 <style>
@@ -515,6 +501,25 @@ if not st.session_state.get("uid"):
                         st.rerun()
                     except Exception as e:
                         st.error(f"Sign-in failed: {e}")
+
+        # ── Try Demo section ────────────────────────────────────────────────────
+        st.markdown("<div style='margin-top:32px;padding-top:24px;border-top:1px solid rgba(118,185,0,0.2)'></div>", unsafe_allow_html=True)
+        st.markdown(
+            "<p style='color:#6b7280;font-size:12px;margin-bottom:12px'>"
+            "Want to explore first? Try our demo portfolio to see Daily Brief, Stock Research, and all features in action."
+            "</p>",
+            unsafe_allow_html=True,
+        )
+        if st.button("Try Demo", key="demo_btn", use_container_width=True):
+            st.session_state["uid"]          = DEMO_UID
+            st.session_state["display_name"] = "Demo Portfolio"
+            st.session_state["email"]        = "demo@marketmind.ai"
+            try:
+                from data.firestore_client import get_or_create_user
+                get_or_create_user(DEMO_UID, "demo@marketmind.ai", "Demo Portfolio")
+            except Exception:
+                pass
+            st.rerun()
 
     st.stop()
 
