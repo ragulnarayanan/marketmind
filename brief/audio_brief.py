@@ -158,6 +158,9 @@ def write_audio_script(brief: dict) -> str:
     # ── Portfolio news summary ──────────────────────────────────────────────
     news_summary = summary.get("summary", "")
     if news_summary:
+        # Truncate to ~1500 chars to stay under TTS 4096 limit (with room for other sections)
+        if len(news_summary) > 1500:
+            news_summary = news_summary[:1500].rsplit('. ', 1)[0] + '.'
         script += (
             f"Here is what is driving your portfolio today. "
             f"{news_summary}\n\n"
