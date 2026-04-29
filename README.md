@@ -106,7 +106,10 @@ python verify_setup.py
 streamlit run app.py
 ```
 
-Set `TEST_UID=your-id` in `.env` to skip the login form during local development.
+**Environment options:**
+- `TEST_UID=your-id` — Skip login form during local development
+- `DEMO_UID=demo-user` — Set the demo account UID (default: `demo-user`)
+- `AUTO_DEMO=true` — Auto-login to demo portfolio (no signup prompt)
 
 ---
 

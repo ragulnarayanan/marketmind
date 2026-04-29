@@ -340,6 +340,8 @@ if not st.session_state.get("_qdrant_init"):
 
 # ── Auth gate ──────────────────────────────────────────────────────────────────
 TEST_UID = os.getenv("TEST_UID")
+DEMO_UID = os.getenv("DEMO_UID", "demo-user")
+AUTO_DEMO = os.getenv("AUTO_DEMO", "").lower() == "true"
 
 if TEST_UID and not st.session_state.get("uid"):
     st.session_state["uid"]          = TEST_UID
@@ -351,8 +353,33 @@ if TEST_UID and not st.session_state.get("uid"):
     except Exception:
         pass
 
+# Auto-login to demo if AUTO_DEMO=true
+if AUTO_DEMO and not st.session_state.get("uid"):
+    st.session_state["uid"]          = DEMO_UID
+    st.session_state["display_name"] = "Demo Portfolio"
+    st.session_state["email"]        = "demo@marketmind.ai"
+    try:
+        from data.firestore_client import get_or_create_user
+        get_or_create_user(DEMO_UID, "demo@marketmind.ai", "Demo Portfolio")
+    except Exception:
+        pass
+
 if not st.session_state.get("uid"):
     import streamlit.components.v1 as _cv1
+
+    # ── Demo / Try button at top ────────────────────────────────────────────────
+    col_demo, col_spacer = st.columns([0.15, 0.85])
+    with col_demo:
+        if st.button("✨ Try Demo", key="demo_btn", use_container_width=True):
+            st.session_state["uid"]          = DEMO_UID
+            st.session_state["display_name"] = "Demo Portfolio"
+            st.session_state["email"]        = "demo@marketmind.ai"
+            try:
+                from data.firestore_client import get_or_create_user
+                get_or_create_user(DEMO_UID, "demo@marketmind.ai", "Demo Portfolio")
+            except Exception:
+                pass
+            st.rerun()
 
     # ── Same white-text + black-button overrides as home page ────────────────
     st.markdown("""
